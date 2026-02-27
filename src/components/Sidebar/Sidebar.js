@@ -1,44 +1,177 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo/Frame 1.png';
-import dashboardIcon1 from '../../assets/icons/Dashboard.png';
-import dashboardIcon2 from '../../assets/icons/Graph.png';
-import SchoolIcon1 from '../../assets/icons/school(1).png';
-import SchoolIcon2 from '../../assets/icons/school(2).png';
-import MedalIcon2 from '../../assets/icons/medalStar(1).png';
-import MedalIcon1 from '../../assets/icons/medal-star(2).png';
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import logo from "../../assets/logo/Frame 1.png";
+import dashboardIcon1 from "../../assets/icons/Dashboard.png";
+import dashboardIcon2 from "../../assets/icons/Graph.png";
+import SchoolIcon1 from "../../assets/icons/school(1).png";
+import SchoolIcon2 from "../../assets/icons/school(2).png";
+import MedalIcon2 from "../../assets/icons/medalStar(1).png";
+import MedalIcon1 from "../../assets/icons/medal-star(2).png";
+
+//admin imports
+import PrincipalIcon1 from "../../assets/icons/owner 1.png";
+import PrincipalIcon2 from "../../assets/icons/owner.png";
+import Staff1 from "../../assets/icons/training1.png";
+import Staff2 from "../../assets/icons/training2.png";
+import program1 from "../../assets/icons/calendarsearch1.png";
+import program2 from "../../assets/icons/calendarsearch2.png";
+import Parents1 from "../../assets/icons/people.png";
+import Parents2 from "../../assets/icons/people1.png";
+import Student1 from "../../assets/icons/graduation1.png";
+import Student2 from "../../assets/icons/graduation2.png";
+import UpcomingEvents1 from "../../assets/icons/calendar1.png";
+import UpcomingEvents2 from "../../assets/icons/calendar2.png";
+import Certification1 from "../../assets/icons/medal_star1.png";
+import Certification2 from "../../assets/icons/medal_star2.png";
+import MealTracking1 from "../../assets/icons/Meal_application_tracking1.png";
+import MealTracking2 from "../../assets/icons/Meal_application_tracking2.png";
+import SleepLogs1 from "../../assets/icons/sleep1.png";
+import SleepLogs2 from "../../assets/icons/sleep2.png";
+import Medication1 from "../../assets/icons/Medication1.png";
+import Medication2 from "../../assets/icons/Medication2.png";
+import Payment1 from "../../assets/icons/Payment1.png";
+import Payment2 from "../../assets/icons/Payment2.png";
+import Subscription1 from "../../assets/icons/crown1.png";
+import Subscription2 from "../../assets/icons/Crown2.png";
+import { leaveChatRoom } from "../LeaveRoom/LeaveRoom";
+import { FaUserFriends } from "react-icons/fa";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
   const [hoveredTab, setHoveredTab] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarRef = useRef(null);
+  const { isSuperAdmin, isSchoolAdmin } = useAuth();
+  let userId = localStorage.getItem("radient_school_id");
 
-  const tabs = [
+  const handleLeaveRoom = () => {
+    leaveChatRoom(userId);
+  };
+
+  // SuperAdmin tabs
+  const superAdminTabs = [
     {
       name: "Dashboard",
       icon: dashboardIcon1,
       activeIcon: dashboardIcon2,
-      path: "/super_admin/dashboard",
+      path: "/super_admin/dashboard"
     },
     {
       name: "Mange School",
       icon: SchoolIcon1,
       activeIcon: SchoolIcon2,
-      path: "/super_admin/manage_school",
+      path: "/super_admin/manage_school"
     },
     {
       name: "Subscription Service",
       icon: MedalIcon1,
       activeIcon: MedalIcon2,
-      path: "/super_admin/subscription_service",
-    },
+      path: "/super_admin/subscription_service"
+    }
   ];
+
+  // SchoolAdmin tabs
+  const schoolAdminTabs = [
+    {
+      name: "Dashboard",
+      icon: dashboardIcon1,
+      activeIcon: dashboardIcon2,
+      path: "/school_admin/dashboard"
+    },
+    {
+      name: "Principal",
+      icon: PrincipalIcon1,
+      activeIcon: PrincipalIcon2,
+      path: "/school_admin/principal"
+    },
+    {
+      name: "Staff",
+      icon: Staff1,
+      activeIcon: Staff2,
+      path: "/school_admin/staff"
+    },
+    {
+      name: "Programs",
+      icon: program1,
+      activeIcon: program2,
+      path: "/school_admin/program"
+    },
+    {
+      name: "Student",
+      icon: Student1,
+      activeIcon: Student2,
+      path: "/school_admin/student"
+    },
+    {
+      name: "Parents",
+      icon: Parents1,
+      activeIcon: Parents2,
+      path: "/school_admin/parents"
+    },
+    {
+      name: "Parents Reminder",
+      icon: Parents1,
+      activeIcon: Parents2,
+      path: "/school_admin/parent_reminder"
+    },
+    {
+      name: "Upcoming Events",
+      icon: UpcomingEvents1,
+      activeIcon: UpcomingEvents2,
+      path: "/school_admin/upcoming_events"
+    },
+    // {
+    //   name: "Programs",
+    //   icon: UpcomingEvents1,
+    //   activeIcon: UpcomingEvents2,
+    //   path: "/school_admin/programs",
+    // },
+    {
+      name: "Certification",
+      icon: Certification1,
+      activeIcon: Certification2,
+      path: "/school_admin/certification"
+    },
+    {
+      name: "Meal Tracking",
+      icon: MealTracking1,
+      activeIcon: MealTracking2,
+      path: "/school_admin/meal_tracking"
+    },
+    {
+      name: "Sleep Logs",
+      icon: SleepLogs1,
+      activeIcon: SleepLogs2,
+      path: "/school_admin/sleep_logs"
+    },
+    {
+      name: "Medication",
+      icon: Medication1,
+      activeIcon: Medication2,
+      path: "/school_admin/medication"
+    },
+    {
+      name: "Payment",
+      icon: Payment1,
+      activeIcon: Payment2,
+      path: "/school_admin/payment"
+    },
+    {
+      name: "Subscription",
+      icon: Subscription1,
+      activeIcon: Subscription2,
+      path: "/school_admin/subscription"
+    }
+  ];
+
+  // Select tabs based on role
+  const tabs = isSuperAdmin ? superAdminTabs : schoolAdminTabs;
 
   useEffect(() => {
     const currentPath = location.pathname;
 
-    const currentTab = tabs.find(tab => {
+    const currentTab = tabs.find((tab) => {
       return currentPath === tab.path || currentPath.startsWith(`${tab.path}/`);
     });
 
@@ -47,13 +180,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
     } else {
       setActiveTab(null);
     }
-
   }, [location, tabs, setActiveTab]);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab.name);
     navigate(tab.path);
-    setSidebarOpen(false)
+    setSidebarOpen(false);
   };
 
   useEffect(() => {
@@ -76,21 +208,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
     <div className="flex h-screen">
       <div
         ref={sidebarRef}
-        className={`fixed z-10 inset-y-0 left-0 transition duration-300 bg-[#293FE3] transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:relative lg:translate-x-0 min-w-[275px]`}
+        className={`fixed z-10 inset-y-0 left-0 transition duration-300 bg-[#293FE3] transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:relative lg:translate-x-0 min-w-[275px]`}
       >
-        <div className="border-b border-[#F0F1F2] px-6 py-5 cursor-pointer" onClick={() => handleTabClick(tabs[0])}>
+        <div
+          className="border-b border-[#F0F1F2] px-6 py-5 cursor-pointer"
+          onClick={() => handleTabClick(tabs[0])}
+        >
           <img src={logo} className="w-[200px] h-[40px]" alt="Logo" />
         </div>
-        <div className='h-full overflow-y-auto'>
+        <div className="h-full overflow-y-auto">
           <nav className="mt-8 mb-32 mx-3 space-y-3">
             {tabs.map((tab) => (
               <div
                 key={tab.name}
-                className={`flex w-full items-center h-[44px] px-4 cursor-pointer rounded-xl transition duration-200 font-medium text-sm ${activeTab === tab.name
-                  ? "bg-[#FFFFFF] text-[#293FE3]"
-                  : "hover:bg-[#FFFFFF] hover:text-[#293FE3] text-[#DFE3EA]"
-                  }`}
+                className={`flex w-full items-center h-[44px] px-4 cursor-pointer rounded-xl transition duration-200 font-medium text-sm ${
+                  activeTab === tab.name
+                    ? "bg-[#FFFFFF] text-[#293FE3]"
+                    : "hover:bg-[#FFFFFF] hover:text-[#293FE3] text-[#DFE3EA]"
+                }`}
                 onClick={() => handleTabClick(tab)}
                 onMouseEnter={() => setHoveredTab(tab.name)}
                 onMouseLeave={() => setHoveredTab(null)}
@@ -129,7 +266,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
           </svg>
         </button>
       </div>
-
     </div>
   );
 };

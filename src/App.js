@@ -1,11 +1,14 @@
-import { Toaster } from 'react-hot-toast';
-import './App.css';
-import Router from './router/Router';
+import { Toaster } from "react-hot-toast";
+import "./App.css";
+import Router from "./router/Router";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
     <>
-      <Router />
+      <AuthProvider>
+        <Router />
+      </AuthProvider>
 
       <Toaster
         position="top-right"
@@ -13,8 +16,8 @@ function App() {
         toastOptions={{
           style: {
             fontSize: "14px",
-            letterSpacing: "0.5px",
-          },
+            letterSpacing: "0.5px"
+          }
         }}
       />
     </>

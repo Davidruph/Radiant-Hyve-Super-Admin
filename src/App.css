@@ -1,7 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 * {
   font-family: "Poppins", serif;
+  /* touch-action: pan-y; */
 }
 
 @keyframes dropdown {
@@ -9,6 +10,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -20,12 +22,399 @@
 }
 
 @media screen and (max-height: 700px) {
-  .popupheight{
+  .popupheight {
     max-height: 300px !important;
   }
+
+  .modalheight {
+    height: 300px !important;
+  }
 }
+
+@media screen and (max-height: 800px) {
+  .popupheight {
+    max-height: 300px !important;
+  }
+
+  .modalheight {
+    height: 450px;
+  }
+}
+
 @media screen and (max-height: 570px) {
-  .popoverheight{
+  .popoverheight {
     max-height: 270px !important;
   }
+}
+
+.scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 50px;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}
+
+.scrollBar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollBar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.scrollBar::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 50px;
+}
+
+.scrollBar::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}
+
+.react-calendar {
+  width: 350px;
+  max-width: 100%;
+  background: #f9f9f9 !important;
+  border: none !important;
+  font-family: "Poppins", serif !important;
+  line-height: 1.125em;
+  border-radius: 7px !important;
+}
+
+.react-calendar__navigation__next2-button {
+  display: none !important;
+}
+
+.react-calendar__navigation__prev2-button {
+  display: none !important;
+}
+
+.react-calendar__navigation__arrow {
+  font-size: 30px !important;
+  font-weight: 200 !important;
+  color: #b5bec6 !important;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+  font-size: 12px !important;
+}
+
+.react-calendar__month-view__days__day--weekend {
+  color: #1f1f1f !important;
+}
+
+.react-calendar__tile--now {
+  background: #ffff76;
+}
+
+.react-calendar__tile {
+  max-width: 100%;
+  padding: 7px !important;
+  background: none !important;
+  text-align: center;
+  font: inherit;
+  font-size: 0.833em;
+}
+
+.dashboard_calender .react-calendar__tile--active {
+  color: black !important;
+}
+
+.dashboard_calender {
+  box-shadow: none !important;
+}
+
+.dashboard_calender {
+  z-index: 0 !important;
+  position: relative !important;
+  width: 100% !important;
+}
+
+.dashboard_calender .rmdp-calendar {
+  width: 100% !important;
+}
+
+.dashboard_calender .rmdp-day-picker div {
+  width: 100% !important;
+}
+
+.Staffcalender .react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background-color: transparent;
+}
+
+.Staffcalender .react-calendar__tile--active {
+  color: white !important;
+  background-color: #293fe3 !important;
+  border-radius: 50% !important;
+  height: 50px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.Staffcalender .react-calendar__tile {
+  padding: 0px !important;
+  font-size: 16px !important;
+  height: 50px !important;
+}
+
+.Staffcalender .react-calendar__tile--active div {
+  display: none !important;
+}
+
+.Staffcalender {
+  width: 90% !important;
+  padding-top: 16px !important;
+}
+
+@media screen and (max-width: 450px) {
+  .Staffcalender {
+    width: 100% !important;
+    padding-top: 16px !important;
+  }
+
+  .Staffcalender .react-calendar__tile {
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+  }
+
+  .Staffcalender .react-calendar__tile--active {
+    color: white !important;
+    background-color: #293fe3 !important;
+    border-radius: 50% !important;
+    height: 48px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+}
+
+.custom1 {
+  @apply bg-[#1D3256] text-white rounded-full font-bold h-[40px] !important;
+}
+
+.custom2 {
+  @apply bg-[#293FE3] text-white rounded-full font-bold h-[40px] !important;
+}
+
+.custom3 {
+  @apply bg-[#FFB30B] text-white rounded-full font-bold h-[40px] !important;
+}
+
+.custom4 {
+  @apply bg-[#BF8608] text-white rounded-full font-bold h-[40px] !important;
+}
+
+.custom5 {
+  @apply bg-[#FF6700] text-white rounded-full font-bold h-[40px] !important;
+}
+
+.custom6 {
+  @apply bg-[#BF4D00] text-white rounded-full font-bold h-[40px] !important;
+}
+
+.react-international-phone-input-container .react-international-phone-input {
+  font-size: 16px !important;
+  width: 100% !important;
+  border-radius: 0px 7px 7px 0px !important;
+  padding: 24px 10px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.react-international-phone-country-selector-button {
+  height: var(--react-international-phone-height, 44px) !important;
+  padding: 24px 5px !important;
+  border-radius: 7px 0px 0px 7px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* ==========Upcomig Evcent Calendar====================== */
+
+.events_calendar {
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  height: 430px;
+}
+
+.events_calendar .rmdp-calendar {
+  width: 500px !important;
+}
+
+@media screen and (max-width: 540px) {
+  .events_calendar .rmdp-calendar {
+    width: 300px !important;
+  }
+
+  .events_calendar .rmdp-day span {
+    font-size: 14px !important;
+  }
+
+  .event-day {
+    width: 30px !important;
+  }
+
+  .events_calendar .rmdp-calendar .rmdp-day-picker div {
+    height: 37px !important;
+  }
+
+  .events_calendar .rmdp-week-day {
+    font-size: 14px !important;
+  }
+
+  .events_calendar .rmdp-header-values {
+    font-size: 16px !important;
+  }
+
+  .events_calendar {
+    height: 290px !important;
+  }
+}
+
+.events_calendar .rmdp-calendar .rmdp-day-picker div {
+  width: 100% !important;
+  height: 50px;
+}
+
+.events_calendar .rmdp-day.rmdp-selected span:not(.highlight) {
+  width: 45px !important;
+  margin: auto;
+  background-color: inherit !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+.events_calendar .rmdp-day.today-no-event span {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.events_calendar .rmdp-day.event-day span {
+  background-color: inherit !important;
+  color: #fff !important;
+}
+
+.events_calendar .rmdp-day:hover span {
+  pointer-events: none !important;
+}
+
+.event-day:hover {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+.event-day:hover {
+  pointer-events: none !important;
+}
+
+.ep-arrow.rmdp-ep-arrow.rmdp-ep-shadow.w-full.border.text-sm.border-\[\#E5E7EB\].p-2.rounded-lg.focus\:ring-2.focus\:ring-gray-400.focus\:outline-none {
+  display: none;
+}
+
+.ep-arrow.rmdp-ep-arrow.rmdp-ep-shadow.w-full.border.text-sm.border-\[\#E5E7EB\].p-3.rounded-lg.focus\:ring-2.focus\:ring-gray-400.focus\:outline-none {
+  display: none;
+}
+
+.events_calendar .rmdp-day span {
+  font-size: 16px;
+  color: #1f1f1f;
+  pointer-events: none !important;
+}
+
+.events_calendar .rmdp-year-picker {
+  background-color: #fff;
+  border-radius: 0 0 5px 5px;
+  bottom: 2px;
+  left: 2px;
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  height: 350px !important;
+}
+
+.css-hlgwow {
+  display: flex !important;
+}
+
+.events_calendar .rmdp-month-picker {
+  background-color: #fff;
+  border-radius: 0 0 5px 5px;
+  bottom: 2px;
+  left: 2px;
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  height: 350px !important;
+}
+
+.events_calendar .rmdp-month-picker .rmdp-selected span {
+  background-color: #293fe3 !important;
+  width: 100px !important;
+  color: white !important;
+}
+
+.events_calendar .rmdp-year-picker .rmdp-selected span {
+  background-color: #293fe3 !important;
+  width: 100px !important;
+  color: white !important;
+}
+
+.events_calendar .rmdp-arrow-container:hover {
+  background-color: transparent !important;
+  box-shadow: 0 0 0px #8798ad !important;
+}
+
+.events_calendar .rmdp-header-values {
+  color: #1f1f1f !important;
+  font-weight: 500 !important;
+  font-size: 20px;
+}
+
+.events_calendar .rmdp-arrow {
+  border: solid #b5bec6 !important;
+  border-width: 0 2px 2px 0 !important;
+  width: 11px !important;
+  height: 11px !important;
+}
+
+.events_calendar .rmdp-week-day {
+  color: #9ca3af;
+  cursor: default;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ==========/Upcomig Evcent Calendar====================== */
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+
+.ts-control {
+  border: none !important;
+  padding: 12px 16px !important;
+}
+
+.ts-wrapper {
+  padding: 0% !important;
+}
+
+.rmdp-container {
+  width: 100%;
 }
