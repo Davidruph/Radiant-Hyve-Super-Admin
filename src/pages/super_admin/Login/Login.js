@@ -90,7 +90,7 @@ const Login = () => {
           console.log(datas);
 
           // Determine user role from response - adjust based on your API response
-          const userRole = datas?.role || "school_admin"; // Default to school_admin
+          const userRole = datas?.role;
           const dashboardPath =
             userRole === "super_admin"
               ? "/super_admin/dashboard"

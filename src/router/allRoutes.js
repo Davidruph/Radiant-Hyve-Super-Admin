@@ -1,6 +1,6 @@
 import Dashboard from "../pages/super_admin/Dashboard/Dashboard";
 import AdminLogin from "../pages/admin/Login/Login";
-import SuperAdminLogin from "../pages/Login/Login";
+import SuperAdminLogin from "../pages/super_admin/Login/Login";
 import SchoolDetails from "../pages/super_admin/ManageSchool/SchoolDetails";
 import ManageSchool from "../pages/super_admin/ManageSchool/ManageSchool";
 import SubscriptionService from "../pages/super_admin/SubscriptionService/SubscriptionService";

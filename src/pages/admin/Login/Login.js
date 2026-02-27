@@ -134,11 +134,11 @@ const Login = () => {
             console.log(res?.data);
 
             // Determine user role from API response
-            const userRole = datas?.role || "school_admin";
+            const userRole = datas?.role;
             const dashboardPath =
-              userRole === "super_admin"
-                ? "/super_admin/dashboard"
-                : "/school_admin/dashboard";
+              userRole === "school"
+                ? "/school_admin/dashboard"
+                : "/super_admin/dashboard";
 
             // Store in AuthContext and localStorage
             login(res.data.token, userRole, datas);
