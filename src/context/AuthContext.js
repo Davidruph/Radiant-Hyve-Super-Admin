@@ -2,23 +2,54 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
+// Storage utility using sessionStorage (cleared on browser close - more secure)
+const STORAGE_KEYS = {
+  TOKEN: "radiant-admin-token",
+  ROLE: "user-role",
+  USER: "user-data"
+};
+
+const storage = {
+  setToken: (token) => sessionStorage.setItem(STORAGE_KEYS.TOKEN, token),
+  getToken: () => sessionStorage.getItem(STORAGE_KEYS.TOKEN),
+  removeToken: () => sessionStorage.removeItem(STORAGE_KEYS.TOKEN),
+
+  setRole: (role) => sessionStorage.setItem(STORAGE_KEYS.ROLE, role),
+  getRole: () => sessionStorage.getItem(STORAGE_KEYS.ROLE),
+  removeRole: () => sessionStorage.removeItem(STORAGE_KEYS.ROLE),
+
+  setUser: (user) =>
+    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user)),
+  getUser: () => {
+    const user = sessionStorage.getItem(STORAGE_KEYS.USER);
+    return user ? JSON.parse(user) : null;
+  },
+  removeUser: () => sessionStorage.removeItem(STORAGE_KEYS.USER),
+
+  clearAll: () => {
+    sessionStorage.removeItem(STORAGE_KEYS.TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.ROLE);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize from localStorage on mount
+  // Initialize from sessionStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("radiant-admin-token");
-    const storedRole = localStorage.getItem("user-role");
-    const storedUser = localStorage.getItem("user-data");
+    const storedToken = storage.getToken();
+    const storedRole = storage.getRole();
+    const storedUser = storage.getUser();
 
     if (storedToken && storedRole) {
       setToken(storedToken);
       setRole(storedRole);
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        setUser(storedUser);
       }
     }
     setIsLoading(false);
@@ -29,10 +60,10 @@ export const AuthProvider = ({ children }) => {
     setRole(userRole);
     setUser(userData);
 
-    // Store in localStorage for persistence
-    localStorage.setItem("radiant-admin-token", token);
-    localStorage.setItem("user-role", userRole);
-    localStorage.setItem("user-data", JSON.stringify(userData));
+    // Store in sessionStorage (cleared on browser close)
+    storage.setToken(token);
+    storage.setRole(userRole);
+    storage.setUser(userData);
   };
 
   const logout = () => {
@@ -40,11 +71,8 @@ export const AuthProvider = ({ children }) => {
     setRole(null);
     setUser(null);
 
-    // Clear localStorage
-    localStorage.removeItem("radiant-admin-token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user-role");
-    localStorage.removeItem("user-data");
+    // Clear sessionStorage
+    storage.clearAll();
   };
 
   const isAuthenticated = !!token;

@@ -1,8 +1,14 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { OvalLoader } from "../base-component/Loader/Loader";
 
 export default function PrivateRoute({ children, requiredRole = null }) {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, isLoading } = useAuth();
+
+  // Show loader while checking authentication
+  if (isLoading) {
+    return <OvalLoader />;
+  }
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {
