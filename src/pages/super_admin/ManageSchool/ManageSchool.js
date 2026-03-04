@@ -149,28 +149,28 @@ export default function ManageSchoolPage() {
 
       console.log(param);
 
-      // addSchoolApi(param)
-      //   .then((res) => {
-      //     if (res.status === 201) {
-      //       setIsModalOpens(false);
-      //       handleGetSchoolList()
-      //     }
-      //     setBtnLoader(false);
-      //   })
-      //   .catch((err) => {
-      //     const errs = err?.response?.data;
-      //     setBtnLoader(false);
+      addSchoolApi(param)
+        .then((res) => {
+          if (res.status === 201) {
+            setIsModalOpens(false);
+            handleGetSchoolList();
+          }
+          setBtnLoader(false);
+        })
+        .catch((err) => {
+          const errs = err?.response?.data;
+          setBtnLoader(false);
 
-      //     if (err.response.status === 401) {
-      //       toast.error(errs?.errors?.[0]?.msg || errs?.message);
-      //       localStorage.removeItem("device_Id")
-      //       localStorage.removeItem("radient-admin-token")
-      //       localStorage.removeItem("refresh_token")
-      //       navigate("/super_admin/login");
-      //     } else {
-      //       toast.error(errs?.errors?.[0]?.msg || errs?.message);
-      //     }
-      //   });
+          if (err.response.status === 401) {
+            toast.error(errs?.errors?.[0]?.msg || errs?.message);
+            localStorage.removeItem("device_Id");
+            localStorage.removeItem("radient-admin-token");
+            localStorage.removeItem("refresh_token");
+            navigate("/super_admin/login");
+          } else {
+            toast.error(errs?.errors?.[0]?.msg || errs?.message);
+          }
+        });
     }
   });
 
