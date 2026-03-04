@@ -92,7 +92,7 @@ export default function ManageSchoolPage() {
       .then((res) => {
         const data = res?.data?.data;
         const total_page = res.data.totalPage;
-        if (res.status == 200) {
+        if (res.status === 200) {
           console.log(data);
           setSchoolData(data);
         }
