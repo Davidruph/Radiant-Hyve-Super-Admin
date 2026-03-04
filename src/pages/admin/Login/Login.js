@@ -122,8 +122,8 @@ const Login = () => {
         password: values.password,
         device_id: deviceId,
         device_type: "web",
-        device_token: fcmToken || "abc",
-        role: "school"
+        device_token: fcmToken || "abc"
+        // role: "school"
       };
 
       loginApi(obj)
@@ -131,7 +131,7 @@ const Login = () => {
           const message = res.data.message;
           if (res.data.status === 1) {
             const datas = res?.data?.data;
-            console.log(res?.data);
+            console.log("user data:", res?.data);
 
             // Determine user role from API response
             const userRole = datas?.role;
