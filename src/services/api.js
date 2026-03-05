@@ -144,3 +144,8 @@ export const PARENT_PUSH_NOTIFICATION_API = BASE_URL + "/admin_notification";
 //export
 export const EXPORT_STUDENT_FEES_API = BASE_URL + "/list_student_fees_history";
 export const GET_PARENT_ADMIN_API = BASE_URL + "/get_parent_admin";
+
+//subscription
+export const CREATE_SUBSCRIPTION_API = BASE_URL + "/create_subscription_plan";
+export const GET_SUBSCRIPTION_API = BASE_URL + "/list_subscription_plans";
+export const UPDATE_SUBSCRIPTION_API = BASE_URL + "/update_subscription_plan";

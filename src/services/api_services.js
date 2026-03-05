@@ -97,7 +97,10 @@ import {
   RESET_PASSWORD_API,
   SEND_MESSAGES_AS,
   STUDENT_ASSIGN_TEACHER_API,
-  UPDATE_STAFF_LEAVE_API
+  UPDATE_STAFF_LEAVE_API,
+  CREATE_SUBSCRIPTION_API,
+  GET_SUBSCRIPTION_API,
+  UPDATE_SUBSCRIPTION_API
 } from "./api";
 
 axios.interceptors.request.use(
@@ -156,6 +159,24 @@ const header = {
 
 const mutipartHeader = {
   "content-type": "multipart/form-data"
+};
+
+export const createSubscriptionApi = (data) => {
+  return axios.post(CREATE_SUBSCRIPTION_API, data, {
+    headers: header
+  });
+};
+
+export const getSubscriptionApi = (data) => {
+  return axios.get(GET_SUBSCRIPTION_API, data, {
+    headers: header
+  });
+};
+
+export const updateSubscriptionApi = (data) => {
+  return axios.put(UPDATE_SUBSCRIPTION_API, data, {
+    headers: header
+  });
 };
 
 export const loginApi = (data) => {

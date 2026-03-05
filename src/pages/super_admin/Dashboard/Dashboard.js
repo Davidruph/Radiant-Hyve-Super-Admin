@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import school_img from "../../../assets/images/School.png";
 import subscribed_img from "../../../assets/images/Subscribed.png";
 import { DashboardData } from "../../../data/Data";
@@ -12,6 +12,8 @@ import { IoMdClose } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { FaCaretUp, FaSort, FaSortDown } from "react-icons/fa";
 import revenueIcon from "../../../assets/icons/revenueIcon.png";
+import toast from "react-hot-toast";
+import { getSchoolListApi } from "../../../services/api_services";
 
 const Dashboard = () => {
   const [detailsModal, setDetailsModal] = useState(false);
@@ -20,8 +22,10 @@ const Dashboard = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const rowsPerPage = 5;
   const totalRows = DashboardData.length;
-  const pageCount = Math.ceil(totalRows / rowsPerPage);
   const navigate = useNavigate();
+  const [nodata, setNodata] = useState(false);
+  const [schoolData, setSchoolData] = useState([]);
+  const [pageCount, setPageCount] = useState(1);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= pageCount) {
@@ -86,7 +90,7 @@ const Dashboard = () => {
     {
       image: school_img,
       name: "School",
-      count: "6",
+      count: schoolData?.total_school ? schoolData?.total_school : "0",
       path: "/super_admin/manage_school"
     },
     {
@@ -108,6 +112,54 @@ const Dashboard = () => {
       path: ""
     }
   ];
+
+  const handleGetSchoolList = () => {
+    setNodata(true);
+
+    let param = {
+      page: pageNo
+    };
+
+    getSchoolListApi(param)
+      .then((res) => {
+        const data = res?.data;
+        const total_page = res.data.totalPage;
+        if (res.status === 200) {
+          console.log(data);
+          setSchoolData(data);
+        }
+        setPageCount(total_page);
+        setNodata(false);
+      })
+      .catch((err) => {
+        const errs = err?.response?.data;
+        setNodata(false);
+
+        if (err.response.status === 401) {
+          if (errs?.errors) {
+            toast.error(errs?.errors[0].msg);
+          } else {
+            toast.error(errs?.message);
+          }
+          localStorage.removeItem("device_Id");
+          localStorage.removeItem("radient-admin-token");
+          localStorage.removeItem("refresh_token");
+          navigate("/super_admin/login");
+        } else {
+          if (errs?.errors) {
+            toast.error(errs?.errors[0].msg);
+          } else {
+            toast.error(errs?.message);
+          }
+        }
+      });
+  };
+
+  useEffect(() => {
+    handleGetSchoolList();
+  }, [pageNo]);
+
+  console.log("schoolData", schoolData);
 
   return (
     <>
