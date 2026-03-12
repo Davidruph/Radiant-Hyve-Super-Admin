@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import payementCardIcon from "../../../assets/icons/payment_card.png";
 import stripe from "../../../assets/icons/stripe.png";
 import PricingRightIcon from "../../../assets/icons/pricing_right.png";
 import { FaCheck } from "react-icons/fa";
+import { getSubscriptionApi } from "../../../services/api_services";
+import toast from "react-hot-toast";
+import { OvalLoader } from "../../../base-component/Loader/Loader";
+import { useNavigate } from "react-router-dom";
 
 const CustomRadio = ({ name, value, selected, onChange }) => {
   return (
@@ -31,12 +35,55 @@ const CustomRadio = ({ name, value, selected, onChange }) => {
 const Subscription = () => {
   const [activeTab, setActiveTab] = useState("Overview");
   const [selected, setSelected] = useState("1");
+  const [subscriptionData, setSubscriptionData] = useState([]);
+  const [nodata, setNodata] = useState(false);
+  const navigate = useNavigate();
 
   const subscriptionTab = [
     { name: "Overview" },
     { name: "Plans" },
     { name: "Payment Details" }
   ];
+
+  useEffect(() => {
+    handleGetSubscriptionList();
+  }, []);
+
+  const handleGetSubscriptionList = () => {
+    setNodata(true);
+
+    getSubscriptionApi()
+      .then((res) => {
+        const data = res?.data;
+        if (res.status === 200) {
+          console.log(data);
+          setSubscriptionData(data);
+        }
+        setNodata(false);
+      })
+      .catch((err) => {
+        const errs = err?.response?.data;
+        setNodata(false);
+
+        if (err.response.status === 401) {
+          if (errs?.errors) {
+            toast.error(errs?.errors[0].msg);
+          } else {
+            toast.error(errs?.message);
+          }
+          localStorage.removeItem("device_Id");
+          localStorage.removeItem("radient-admin-token");
+          localStorage.removeItem("refresh_token");
+          navigate("/admin/login");
+        } else {
+          if (errs?.errors) {
+            toast.error(errs?.errors[0].msg);
+          } else {
+            toast.error(errs?.message);
+          }
+        }
+      });
+  };
 
   return (
     <>
@@ -143,74 +190,95 @@ const Subscription = () => {
               Pricing Plans
             </h3>
             <p className="lg:text-base sm:text-sm text-sm mt-3">
-              Add principals, teachers, students, and more to build your team’s
-              success from the start.
+              Choose a plan that best suits your needs and scale your school's
+              operations.
             </p>
           </div>
-          <div>
-            <div className="sm:flex items-center gap-6">
-              <div
-                className="2xl:w-[504px] xl:w-[450px] lg:w-[400px] md:w-96 w-full sm:max-w-full max-w-80 rounded-xl 2xl:p-[30px] xl:p-7 lg:p-6 p-5 mt-6 "
-                style={{
-                  background: "linear-gradient(to bottom, #9EAAFF, #FFE3A5)"
-                }}
-              >
-                <h3 className="md:text-2xl text-lg font-semibold text-[#293FE3] !leading-none">
-                  Free
-                </h3>
-                <p className="md:mt-[30px] sm:mt-6 mt-4 text-sm">
-                  Lorem ipsum dolor sit amet
-                </p>
-                <button className="bg-[#293FE3] text-white font-medium md:text-base text-sm w-full md:py-3 py-2 rounded-lg md:my-[30px] my-6">
-                  Subscribe
-                </button>
-                {Array(5)
-                  .fill()
-                  .map((_, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-5 md:mb-5 mb-3"
+          {nodata ? (
+            <OvalLoader />
+          ) : (
+            <div className="grid grid-cols-12 gap-5 mt-6">
+              {subscriptionData?.data?.map((item, index) => (
+                <div
+                  key={index}
+                  className="xl:col-span-6 md:col-span-9 col-span-12 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow md:px-6 px-4 py-6 border border-[#E5E7EB]"
+                >
+                  {/* Header with Status Badge */}
+                  <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#E5E7EB]">
+                    <h3 className="text-[#1F1F1F] font-semibold md:text-lg text-base">
+                      {item.package_name}
+                    </h3>
+                    {/* <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        item.is_active
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
                     >
-                      <img
-                        src={PricingRightIcon}
-                        alt="..."
-                        className="w-4 h-4"
-                      />
-                      <p className="text-sm">Lorem ipsum dolor sit amet</p>
+                      {item.is_active ? "Active" : "Inactive"}
+                    </span> */}
+                  </div>
+
+                  {/* Service Type */}
+                  <div className="mb-4">
+                    <h4 className="text-[#4B5563] font-semibold md:text-sm text-xs uppercase tracking-wide mb-1">
+                      Service Type
+                    </h4>
+                    <span className="text-[#293FE3] font-semibold md:text-base text-sm bg-[#293FE3]/10 px-3 py-1 rounded-lg inline-block">
+                      {item.service_type}
+                    </span>
+                  </div>
+
+                  {/* Service Fee */}
+                  <div className="mb-5">
+                    <h4 className="text-[#4B5563] font-semibold md:text-sm text-xs uppercase tracking-wide mb-1">
+                      Service Fee
+                    </h4>
+                    <span className="text-green-600 font-bold md:text-2xl text-xl">
+                      ${item.service_fee}
+                    </span>
+                    <span className="text-[#6B757D] text-xs ml-2">
+                      /{item.service_type === "Monthly" ? "month" : "year"}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  <div className="mb-5 pb-4 border-b border-[#E5E7EB]">
+                    <h4 className="text-[#4B5563] font-semibold md:text-sm text-xs uppercase tracking-wide mb-2">
+                      Description
+                    </h4>
+                    <p className="text-[#3B4045] font-medium md:text-sm text-xs leading-relaxed text-justify line-clamp-3">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  {/* Features */}
+                  <div className="mb-5">
+                    <h4 className="text-[#4B5563] font-semibold md:text-sm text-xs uppercase tracking-wide mb-3">
+                      Features
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {item?.Features?.map((feature, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-[#293FE3]/5 border border-[#293FE3] text-[#293FE3] px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#293FE3]/10 transition-colors"
+                        >
+                          ✓ {feature?.feature_name}
+                        </span>
+                      ))}
                     </div>
-                  ))}
-              </div>
-              <div
-                className="2xl:w-[504px] xl:w-[450px] lg:w-[400px] md:w-96 w-full sm:max-w-full max-w-80 rounded-xl 2xl:p-[30px] xl:p-7 lg:p-6 p-5 mt-6"
-                style={{
-                  background: "linear-gradient(to bottom, #9EAAFF, #FFE3A5)"
-                }}
-              >
-                <h3 className="md:text-2xl text-lg font-semibold text-[#293FE3] !leading-none">
-                  $199.00<sub className="text-sm">/monthly</sub>
-                </h3>
-                <p className="mt-[30px] text-sm">Lorem ipsum dolor sit amet</p>
-                <button className="bg-[#293FE3] text-white font-medium md:text-base text-sm w-full md:py-3 py-2 rounded-lg my-[30px]">
-                  Subscribe
-                </button>
-                {Array(5)
-                  .fill()
-                  .map((_, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-5 md:mb-5 mb-3"
-                    >
-                      <img
-                        src={PricingRightIcon}
-                        alt="..."
-                        className="w-4 h-4"
-                      />
-                      <p className="text-sm">Lorem ipsum dolor sit amet</p>
-                    </div>
-                  ))}
-              </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="flex gap-2 pt-4 border-t border-[#E5E7EB]">
+                    <button className="flex-1 bg-[#293FE3] hover:bg-[#1e2fa8] text-white font-medium md:text-sm text-xs py-2 rounded-lg transition-colors">
+                      Subscribe Now
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
       )}
 

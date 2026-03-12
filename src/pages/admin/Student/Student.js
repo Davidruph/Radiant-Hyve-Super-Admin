@@ -4,7 +4,6 @@ import AllStudents from "./AllStudents";
 import NewStudent from "./NewStudent";
 import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
-import { IoIosArrowDown } from "react-icons/io";
 import {
   getAllStudentListApi,
   getNewStudentListApi,
@@ -15,6 +14,20 @@ import toast from "react-hot-toast";
 import WaitingStudent from "./WaitingStudent";
 import { useDebounce } from "use-debounce";
 import { useLocation, useNavigate } from "react-router-dom";
+import { FiPlus, FiUploadCloud, FiX } from "react-icons/fi";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { PhoneInput } from "react-international-phone";
+import Dialog from "../../../base-component/Dialog/Dialog";
+import { IoIosArrowDown, IoMdClose } from "react-icons/io";
+import * as Yup from "yup";
+import PlaceholderImg from "../../../assets/images/placeholderImg.png";
+import { DotLoader } from "../../../base-component/Loader/Loader";
+
+const genderOptions = [
+  { value: "", name: "Select gender" },
+  { value: "male", name: "Male" },
+  { value: "female", name: "Female" }
+];
 
 export default function Staff() {
   const navigate = useNavigate();
@@ -41,6 +54,53 @@ export default function Staff() {
   const [pageCount1, setPageCount1] = useState(1);
   const [pageNo2, setPageNo2] = useState(1);
   const [pageCount2, setPageCount2] = useState(1);
+  const [addStudentsModal, setAddStudentsModal] = useState(false);
+  const [selected, setSelected] = useState(genderOptions[0]);
+  const [img, setImg] = useState("");
+  const [image, setImage] = useState("");
+  const [btnLoader, setBtnLoader] = useState(false);
+
+  const handleAddStudents = () => {
+    setAddStudentsModal(true);
+    setSelected(genderOptions[0]);
+    setImage(null);
+    setImg(null);
+  };
+
+  const validationSchema = Yup.object().shape({
+    fullName: Yup.string()
+      .required("Full name is required")
+      .min(2, "Full name must be at least 2 characters")
+      .max(50, "Full name must be at most 50 characters"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
+    phone: Yup.string()
+      .required("Phone number is required")
+      .test("is-valid-phone", "Enter a valid phone number", (value) => {
+        return value && value.replace(/\D/g, "").length > 5;
+      }),
+    gender: Yup.string().required("Gender is required"),
+    address: Yup.string()
+      .required("Address is required")
+      .min(5, "Address must be at least 5 characters")
+      .max(100, "Address must be at most 100 characters")
+    // password: Yup.string()
+    //   .min(8, "Password must be at least 8 characters")
+    //   .max(20, "Password must be at most 20 characters")
+    //   .required("Password is required")
+    //   .matches(
+    //     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/
+    //     ,
+    //     "Password must have uppercase, lowercase, number, and special character"
+    //   ),
+  });
+
+  const initialValues = {
+    fullName: "",
+    email: "",
+    phone: "",
+    gender: "",
+    address: ""
+  };
 
   let Type;
 
@@ -124,6 +184,18 @@ export default function Staff() {
       });
   };
 
+  const handleImageChange = (e) => {
+    setImg(e.target.files[0]);
+    let profileImage = URL.createObjectURL(e.target.files[0]);
+    setImage(profileImage);
+  };
+
+  const handleRemoveImage = () => {
+    setImg(null);
+    setImage(null);
+    document.getElementById("fileInput").value = "";
+  };
+
   useEffect(() => {
     getNewStudentList();
   }, [pageNo1, debouncedSearch, activeTab]);
@@ -200,6 +272,11 @@ export default function Staff() {
   useEffect(() => {
     getWaitingStudentList();
   }, [pageNo2, debouncedSearchVelue, activeTab]);
+
+  const handleStudentSubmit = (values) => {
+    // setBtnLoader(true);
+    console.log(values);
+  };
 
   return (
     <div>
@@ -318,6 +395,15 @@ export default function Staff() {
                       className="input text-sm h-6 flex-1 outline-none border-none bg-transparent text-gray-800 px-2"
                     />
                   </div>
+                  <button
+                    className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#293FE3] rounded-lg"
+                    onClick={handleAddStudents}
+                  >
+                    <FiPlus className="text-white text-2xl" />
+                    <span className="text-white text-sm font-normal">
+                      Add Student
+                    </span>
+                  </button>
                 </div>
               ) : activeTab === 1 ? (
                 <div className="flex md:flex-row flex-col md:items-center items-start md:gap-4 gap-3">
@@ -406,6 +492,235 @@ export default function Staff() {
             </Tab.Panels>
           </Tab.Group>
         </div>
+
+        <Dialog
+          open={addStudentsModal}
+          onClose={() => setAddStudentsModal(false)}
+          size="xl"
+        >
+          <Dialog.Panel className="rounded-2xl">
+            <Dialog.Description className="">
+              <div className="py-4">
+                <div className="w-full relative sm:text-center text-start my-3 md:px-8 px-4">
+                  <h1 className="md:text-xl text-lg font-semibold text-[#274372]">
+                    Parents Information
+                  </h1>
+                  <button
+                    className="absolute top-0 right-5"
+                    onClick={() => setAddStudentsModal(false)}
+                  >
+                    <IoMdClose className="text-2xl text-black" />
+                  </button>
+                </div>
+
+                <Formik
+                  initialValues={initialValues}
+                  validationSchema={validationSchema}
+                  onSubmit={handleStudentSubmit}
+                >
+                  {({ setFieldValue, values }) => (
+                    <Form className="mt-7 w-full">
+                      <div className="md:px-10 px-4 w-full h-[490px] scroll modalheight overflow-y-auto">
+                        <div className="flex flex-col items-center gap-3">
+                          <label className="cursor-pointer relative">
+                            <div className="w-24 h-24 rounded-full border flex items-center justify-center overflow-hidden">
+                              {image ? (
+                                <img
+                                  src={image}
+                                  alt="Profile"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <img
+                                  src={PlaceholderImg}
+                                  className="w-[100px] h-[100px] object-cover"
+                                  alt=""
+                                />
+                              )}
+                            </div>
+                            {image && (
+                              <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="absolute top-0 -right-0 bg-[#293FE3] border border-gray-300 rounded-full p-1 shadow"
+                              >
+                                <FiX className="text-white w-4 h-4" />
+                              </button>
+                            )}
+                          </label>
+
+                          <input
+                            type="file"
+                            id="fileInput"
+                            className="hidden"
+                            accept=".jpg, .jpeg, .png"
+                            onChange={handleImageChange}
+                          />
+                          <label
+                            htmlFor="fileInput"
+                            className="flex text-sm items-center gap-2 text-gray-700 cursor-pointer"
+                          >
+                            <FiUploadCloud className="text-[#6B7280]" />
+                            Upload Profile Picture
+                          </label>
+                        </div>
+
+                        <div className="w-full flex md:flex-row flex-col justify-between gap-3 mt-5">
+                          <div className="w-full">
+                            <label className="block text-sm text-[#4B5563] mb-2">
+                              Full Name
+                            </label>
+                            <Field
+                              name="fullName"
+                              type="text"
+                              placeholder="Enter full name"
+                              className="w-full border border-[#E5E7EB] text-sm px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-400 focus:outline-none"
+                            />
+                            <ErrorMessage
+                              name="fullName"
+                              component="div"
+                              className="text-red-500 text-xs mt-1"
+                            />
+                          </div>
+                          <div className="w-full">
+                            <label className="block text-sm text-[#4B5563] mb-2">
+                              Email
+                            </label>
+                            <Field
+                              name="email"
+                              type="email"
+                              placeholder="Enter email"
+                              className="w-full border border-[#E5E7EB] text-sm px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-400 focus:outline-none"
+                            />
+                            <ErrorMessage
+                              name="email"
+                              component="div"
+                              className="text-red-500 text-xs mt-1"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="w-full flex md:flex-row flex-col justify-between gap-3 mt-5">
+                          <div className="text-start w-full">
+                            <label className="block text-[#4B5563] font-normal text-sm mb-2">
+                              Phone Number
+                            </label>
+                            <PhoneInput
+                              country={"in"}
+                              value={values.phone}
+                              onChange={(value) =>
+                                setFieldValue("phone", value)
+                              }
+                              inputClass="w-full border text-sm border-[#E5E7EB] px-4 py-3 rounded-lg"
+                              inputStyle={{ width: "100%" }}
+                              isValid={(value) => {
+                                const digits = value.replace(/\D/g, "");
+                                return digits.length > 5;
+                              }}
+                            />
+                            <ErrorMessage
+                              name="phone"
+                              component="div"
+                              className="text-red-500 text-xs mt-1"
+                            />
+                          </div>
+
+                          <div className="w-full">
+                            <label className="block text-[#4B5563] font-normal text-sm mb-2">
+                              Gender
+                            </label>
+                            <Listbox
+                              value={selected}
+                              onChange={(value) => {
+                                setSelected(value);
+                                setFieldValue("gender", value.value);
+                              }}
+                            >
+                              <div className="relative">
+                                <Listbox.Button className="relative w-full border border-[#D1D5DB] text-sm rounded-lg bg-white py-3 pl-3 pr-10 text-left cursor-pointer focus:outline-none">
+                                  <span
+                                    className={`block truncate ${selected.value === "" && "text-[#9CA3AF]"}`}
+                                  >
+                                    {selected.name}
+                                  </span>
+                                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                    <IoIosArrowDown
+                                      className="text-xl text-[#1F1F1F]"
+                                      aria-hidden="true"
+                                    />
+                                  </span>
+                                </Listbox.Button>
+                                <Transition
+                                  as={Fragment}
+                                  leave="transition ease-in duration-100"
+                                  leaveFrom="opacity-100"
+                                  leaveTo="opacity-0"
+                                >
+                                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg max-h-60 py-1 text-sm ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    {genderOptions.map((item, index) => (
+                                      <Listbox.Option
+                                        key={index}
+                                        value={item}
+                                        className="cursor-pointer py-2 px-5 border-b last:border-none border-[#E9E9E9]"
+                                      >
+                                        <span className="block text-[#1F1F1F] font-normal md:text-sm text-xs truncate">
+                                          {item.name}
+                                        </span>
+                                      </Listbox.Option>
+                                    ))}
+                                  </Listbox.Options>
+                                </Transition>
+                              </div>
+                            </Listbox>
+                            <ErrorMessage
+                              name="gender"
+                              component="div"
+                              className="text-red-500 text-xs mt-1"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="w-full mt-5">
+                          <label className="block text-sm text-[#4B5563] mb-2">
+                            Address
+                          </label>
+                          <Field
+                            name="address"
+                            type="text"
+                            placeholder="Enter address"
+                            className="w-full border border-[#E5E7EB] text-sm px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-400 focus:outline-none"
+                          />
+                          <ErrorMessage
+                            name="address"
+                            component="div"
+                            className="text-red-500 text-xs mt-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="md:px-8 px-4 flex justify-between md:w-[500px] mx-auto w-full mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setAddStudentsModal(false)}
+                          className="bg-[#DFE3EA] w-full font-medium text-sm h-12 text-[#6B7280] rounded-lg mr-5"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          // disabled={btnLoader}
+                          type="submit"
+                          className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        >
+                          {btnLoader ? <DotLoader color="#fff" /> : " Save"}
+                        </button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
+              </div>
+            </Dialog.Description>
+          </Dialog.Panel>
+        </Dialog>
       </div>
     </div>
   );

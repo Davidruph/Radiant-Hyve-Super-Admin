@@ -357,7 +357,7 @@ export default function SubscriptionService() {
       {nodata ? (
         <OvalLoader />
       ) : (
-        <div className="grid grid-cols-12 mt-5">
+        <div className="grid grid-cols-12 mt-5 gap-5">
           {subscriptionData?.data?.map((item, index) => (
             <div
               key={index}
