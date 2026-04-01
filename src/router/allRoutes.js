@@ -1,5 +1,6 @@
 import Dashboard from "../pages/super_admin/Dashboard/Dashboard";
 import AdminLogin from "../pages/admin/Login/Login";
+import Login from "../pages/login/login";
 import SuperAdminLogin from "../pages/super_admin/Login/Login";
 import SchoolDetails from "../pages/super_admin/ManageSchool/SchoolDetails";
 import ManageSchool from "../pages/super_admin/ManageSchool/ManageSchool";
@@ -42,7 +43,7 @@ import ParentReminder from "../pages/admin/ParentReminder/ParentReminder";
 
 export const publicRouters = [
   { path: "*", element: <ErrorScreen /> },
-  { path: "/login", element: <AdminLogin /> },
+  { path: "/login", element: <Login /> },
   { path: "/super_admin/login", element: <SuperAdminLogin /> },
   { path: "/super_admin", element: <SuperAdminLogin /> },
   { path: "/school_admin/login", element: <AdminLogin /> },

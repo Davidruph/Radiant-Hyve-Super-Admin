@@ -1,0 +1,142 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+
+.new-auth-bg {
+  background: linear-gradient(135deg, #4f39f6 0%, #9810fa 50%, #432dd7 100%);
+}
+.new-auth-header {
+  font-family: Manrope;
+  font-weight: 700;
+  font-style: Bold;
+  /* font-size: 48px; */
+  line-height: 60px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #ffffff;
+}
+.new-auth-text {
+  font-family: Manrope;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 18px;
+  line-height: 29.25px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #ffffffe5;
+}
+.auth-tag {
+  font-family: Manrope;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #ffffffe5;
+}
+.new-auth-title {
+  font-family: Manrope;
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 30px;
+  line-height: 36px;
+  letter-spacing: 0px;
+  color: #101828;
+}
+.new-auth-sub {
+  font-family: Manrope;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  color: #4a5565;
+}
+.new-auth-button {
+  background: linear-gradient(90deg, #9810fa 0%, #4f39f6 100%);
+  border-radius: 10px;
+  font-family: Manrope;
+  font-weight: 600;
+  font-style: SemiBold;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #ffffff;
+}
+.auth-question {
+  font-family: Manrope;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #4a5565;
+}
+.auth-question span {
+  font-family: Manrope;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #9810fa;
+}
+.auth-tag-auth {
+  font-family: Manrope;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #6a7282;
+}
+.auth-back {
+  font-family: Manrope;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #4a5565;
+}
+.auth-tag-text {
+  font-family: Manrope;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #4a5565;
+}
+.auth-forgot-password {
+  font-family: Manrope;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  color: #9810fa;
+}
+.auth-remember {
+  font-family: Manrope;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  color: #364153;
+}
+.new-auth-label {
+  font-family: Manrope;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  color: #364153;
+}
