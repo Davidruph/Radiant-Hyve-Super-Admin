@@ -28,6 +28,12 @@ import { DotLoader } from "../../../base-component/Loader/Loader";
 import Dialog from "../../../base-component/Dialog/Dialog";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import Card from "../../../components/Card/Card";
+import { LiaCoinsSolid } from "react-icons/lia";
+import { GrUserExpert } from "react-icons/gr";
+import { AiOutlineUser } from "react-icons/ai";
+import { LuUserRoundPen } from "react-icons/lu";
+import { FaUserGraduate } from "react-icons/fa";
 
 const weeks = [
   { name: "Today", value: "today" },
@@ -84,7 +90,7 @@ const Dashboard = () => {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -97,34 +103,34 @@ const Dashboard = () => {
 
   const dashboardDetails = [
     {
-      image: PrincipaleIcon,
-      name: "Principal",
+      icon: <LuUserRoundPen className="text-white text-2xl" />,
+      title: "Total Principal",
       count: dashboardData?.total_principal || 0,
       path: "/school_admin/principal"
     },
     {
-      image: StaffIcon,
-      name: "Staff",
+      icon: <GrUserExpert className="text-white text-2xl" />,
+      title: "Total Staff",
       count: dashboardData?.total_staff || 0,
       path: "/school_admin/staff"
     },
     {
-      image: ParentsIcon,
-      name: "Parents",
+      icon: <AiOutlineUser className="text-white text-2xl" />,
+      title: "Total Parents",
       count: dashboardData?.total_parent || 0,
       path: "/school_admin/parents"
     },
     {
-      image: StudentIcon,
-      name: "Student",
+      icon: <FaUserGraduate className="text-white text-2xl" />,
+      title: "Total Students",
       count: dashboardData?.total_student || 0,
       path: "/school_admin/student"
     },
 
     {
-      image: EarningsIcon,
-      name: "Earnings",
-      count: `$${dashboardData?.total_earning || "0.00"}`,
+      icon: <LiaCoinsSolid className="text-white text-2xl" />,
+      title: "Total Earnings",
+      count: `$${dashboardData?.total_earning || 0.0}`,
       path: "/school_admin/payment"
     }
   ];
@@ -348,7 +354,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="grid grid-cols-12 2xl:gap-x-6 lg:gap-x-5 gap-4">
+      {/* <div className="grid grid-cols-12 2xl:gap-x-6 lg:gap-x-5 gap-4">
         {loader
           ? [...Array(5)].map((_, index) => (
               <div
@@ -393,6 +399,19 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+      </div> */}
+
+      <div className="w-full flex flex-wrap gap-4 mb-5 items-center justify-center md:items-start md:justify-start">
+        {dashboardDetails &&
+          dashboardDetails.map((item, index) => (
+            <Card
+              key={index}
+              title={item.title}
+              count={item.count}
+              summary={item.summary}
+              icon={item.icon}
+            />
+          ))}
       </div>
 
       <div className="grid grid-cols-12 gap-5 w-full mt-5">
@@ -404,7 +423,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-center">
               <div className="flex items-center justify-center gap-3">
                 <div className="flex items-center justify-center gap-1">
-                  <div className="w-4 h-4 rounded-full bg-[#293FE3]"></div>
+                  <div className="w-4 h-4 rounded-full bg-[#9810FA]"></div>
                   <span className="text-[#1F1F1F] font-normal md:text-sm text-xs">
                     Present
                   </span>
@@ -940,7 +959,7 @@ const Dashboard = () => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? <DotLoader color="#fff" /> : "Submit"}
                       </button>

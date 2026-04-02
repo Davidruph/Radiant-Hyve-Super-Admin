@@ -5,8 +5,8 @@ import notificationIcon from "../../assets/icons/notificationIcon.png";
 import logOutIcon from "../../assets/icons/logout.png";
 import logOut from "../../assets/icons/logOutIcon.png";
 import keyIcon from "../../assets/icons/key.png";
-import radianthvye_logo from "../../assets/logo/Frame 4.png";
-import { matchPath, useLocation, useNavigate } from "react-router-dom";
+import logo from "../../assets/logo/blacklogo.svg";
+import { useNavigate } from "react-router-dom";
 import Popover from "../../base-component/Popover/Popover";
 import { notificationsData } from "../../data/Data";
 import { IoMdClose } from "react-icons/io";
@@ -19,6 +19,7 @@ import { changePasswordApi, logoutApi } from "../../services/api_services";
 import toast from "react-hot-toast";
 import { DotLoader } from "../../base-component/Loader/Loader";
 import { useAuth } from "../../context/AuthContext";
+import dropicon from "../../assets/images/drop.svg";
 
 const Header = (props) => {
   const [changePassModal, setChangePassModal] = useState(false);
@@ -27,13 +28,34 @@ const Header = (props) => {
   const [btnLoader, setbtnLoader] = useState(false);
   const [showPassword, setShowPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState("");
-  const location = useLocation();
-  const isHiddenRoute = matchPath(
-    "/super_admin/manage_school/school_details/:id",
-    location.pathname
-  );
+  // const location = useLocation();
+  // const isHiddenRoute = matchPath(
+  //   "/super_admin/manage_school/school_details/:id",
+  //   location.pathname
+  // );
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user, role } = useAuth();
+  console.log("User in Header:", user, role);
+
+  // Get user's full name and generate initials
+  const userName = user?.full_name || user?.email || "User";
+  const userInitials = userName
+    .split(" ")
+    .map((name) => name.charAt(0).toUpperCase())
+    .join("")
+    .slice(0, 2);
+
+  const userRole = user?.role || role;
+
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      navigate(`/school_admin/search?q=${encodeURIComponent(searchValue)}`);
+      setSearchValue("");
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -108,22 +130,28 @@ const Header = (props) => {
 
   return (
     <div>
-      <div className="md:pt-5 pt-3 md:px-5 px-3 bg-[#F3F5F9]">
-        <header className="sticky top-0 flex w-full bg-[#FFB30B] rounded-lg shadow-lg">
+      <div className="bg-[#F3F5F9]">
+        <header className="sticky top-0 flex w-full bg-[#FFFFFFCC] header-bg  overflow-visible">
+          <div
+            className="px-6 py-5 cursor-pointer hidden lg:flex items-center"
+            onClick={() => navigate("/")}
+          >
+            <img src={logo} className="w-[200px] h-[40px]" alt="Logo" />
+          </div>
           <div className="flex flex-grow items-center justify-between lg:justify-between py-4 px-4 shadow-2 md:px-6">
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <button
                 aria-controls="sidebar"
-                className=" block rounded-sm bg-none p-1.5 shadow-sm 2xl:hidden xl:hidden lg:hidden"
+                className="block rounded-sm bg-none p-1.5 shadow-sm 2xl:hidden xl:hidden lg:hidden"
                 onClick={() => {
                   props.setSidebarOpen(!props.sidebarOpen);
                 }}
               >
                 <HiBars3
-                  className={`text-3xl text-white ${!props?.sidebarOpen && "w-full delay-300"}`}
+                  className={`text-3xl text-black ${!props?.sidebarOpen && "w-full delay-300"}`}
                 />
               </button>
-              {!isHiddenRoute && (
+              {/* {!isHiddenRoute && (
                 <div className="sm:flex items-center hidden">
                   <p className="text-[#274372] 2xl:text-xl text-lg font-semibold">
                     {props.activeTab}
@@ -136,15 +164,45 @@ const Header = (props) => {
                     School Details
                   </p>
                 </div>
-              )}
+              )} */}
+              {/* <form
+                onSubmit={handleSearchSubmit}
+                className="hidden md:flex items-center bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 ml-4 w-full max-w-2xl relative"
+              >
+                <input
+                  type="text"
+                  placeholder="Search students, staff, parents..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  className="outline-0 bg-transparent text-sm text-[#6B7280] w-full"
+                />
+                <button
+                  type="submit"
+                  className="flex items-center justify-center"
+                >
+                  <svg
+                    className="w-5 h-5 text-[#9CA3AF]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </button>
+              </form> */}
             </div>
-            <div className="flex items-center 2xl:gap-6 xl:gap-4 md:gap-3 gap-2">
+            <div className="flex items-center 2xl:gap-6 xl:gap-2 md:gap-2 gap-2">
               <div>
                 <Popover className="relative">
                   {({ close }) => (
                     <>
                       <Popover.Button className="outline-0">
-                        <div className="xl:w-[48px] xl:h-[48px] md:w-11 md:h-11 w-10 h-10 rounded-full border-2 border-[#D1D5DB] bg-white flex items-center justify-center">
+                        <div className="w-[40px] h-[40px] rounded-full border-2 border-[#D1D5DB] bg-white flex items-center justify-center">
                           <img
                             src={notification}
                             alt="..."
@@ -152,9 +210,10 @@ const Header = (props) => {
                           />
                         </div>
                       </Popover.Button>
+
                       <Popover.Panel
                         id="notifyside"
-                        className="lg:w-[450px] sm:w-[380px] w-[270px] overflow-x-hidden mt-7"
+                        className="lg:w-[450px] sm:w-[380px] w-[270px] overflow-x-hidden mt-2 fixed z-[9999] bg-white rounded-lg shadow-2xl border border-[#E5E7EB] top-20 right-4 left-auto"
                       >
                         <div className="flex items-center justify-between relative md:py-5 py-3 sm:px-6 px-3 border-b border-[#E5E7EB]">
                           <h3 className="text-[#0F1113] font-semibold md:text-lg text-base">
@@ -201,15 +260,31 @@ const Header = (props) => {
               <div>
                 <Menu>
                   <Menu.Button className="block">
-                    <div className="xl:w-[48px] xl:h-[48px] md:w-11 md:h-11 w-10 h-10 rounded-full border-2 border-[#D1D5DB] bg-white flex items-center justify-center">
+                    {/* <div className="xl:w-[48px] xl:h-[48px] md:w-11 md:h-11 w-10 h-10 rounded-full border-2 border-[#D1D5DB] bg-white flex items-center justify-center">
                       <img
                         src={radianthvye_logo}
                         alt="..."
                         className="md:w-6 md:h-6 w-5 h-5"
                       />
+                    </div> */}
+                    <div className="flex gap-2 items-center w-auto rounded-[14px] p-[12px]">
+                      <div className="w-[36px] h-[36px] avatar-box rounded-[10px] flex items-center justify-center text-white font-semibold text-sm">
+                        {userInitials}
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="auth-name">{userName}</p>
+                        <p className="auth-role">
+                          {userRole === "school"
+                            ? "Administrator"
+                            : userRole === "super_admin"
+                              ? "Super Admin"
+                              : userRole}
+                        </p>
+                      </div>
+                      <img src={dropicon} alt="drop down" />
                     </div>
                   </Menu.Button>
-                  <Menu.Items className="w-60 bg-white mt-6">
+                  <Menu.Items className="w-60 bg-white mt-2 absolute z-[9999] right-0 shadow-2xl border border-[#E5E7EB] rounded-lg">
                     <Menu.Item
                       className=" text-[#0F1113] flex font-normal md:text-base text-sm items-center py-2 border-b border-[#E5E7EB]"
                       onClick={() => {
@@ -380,7 +455,7 @@ const Header = (props) => {
                   </button>
                   <button
                     type="submit"
-                    className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                    className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                   >
                     {btnLoader ? <DotLoader color="#fff" /> : "Update"}
                   </button>

@@ -525,7 +525,7 @@ export default function SchoolDetails() {
                       <button
                         type="submit"
                         disabled={btnLoader}
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : "Update"}
                       </button>
@@ -653,7 +653,7 @@ export default function SchoolDetails() {
                       <button
                         type="submit"
                         disabled={isSubmitting || btnLoader}
-                        className="bg-[#293FE3] text-white font-medium h-12 text-sm w-full rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium h-12 text-sm w-full rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : "Update"}
                       </button>

@@ -93,7 +93,7 @@ const Subscription = () => {
             subscriptionTab?.map((item, index) => (
               <h4
                 key={index}
-                className={`sm:text-base text-sm cursor-pointer  ${activeTab === item?.name ? "border-b-2 border-[#293FE3] text-[#293FE3]" : "text-[#9CA3AF]"}`}
+                className={`sm:text-base text-sm cursor-pointer  ${activeTab === item?.name ? "border-b-2 border-[#9810FA] text-[#9810FA]" : "text-[#9CA3AF]"}`}
                 onClick={() => setActiveTab(item?.name)}
               >
                 {item?.name}
@@ -106,11 +106,11 @@ const Subscription = () => {
         <div>
           <div className="mt-6">
             <div className="border-2 border-[#FFB30B] rounded-lg bg-[#FFF4DA] sm:w-[504px] w-full sm:p-[30px] p-4 text-center">
-              <h3 className="text-xl font-semibold text-[#293FE3]">
+              <h3 className="text-xl font-semibold text-[#9810FA]">
                 Premium Plan Activated
               </h3>
               <div className="mt-5">
-                <h4 className="text-3xl font-semibold text-[#293FE3]">
+                <h4 className="text-3xl font-semibold text-[#9810FA]">
                   <sup className="text-sm text-[#1F1F1F] font-normal ">$</sup>
                   129
                   <sub className="text-sm text-[#1F1F1F] font-normal">
@@ -120,9 +120,9 @@ const Subscription = () => {
                 <p className="text-base mt-[30px]">
                   12 students out of 30 have been accepted.
                 </p>
-                <div className="border-2 border-[#293FE3] rounded-full mt-5"></div>
+                <div className="border-2 border-[#9810FA] rounded-full mt-5"></div>
               </div>
-              <button className="bg-[#293FE3] text-white font-medium text-base sm:w-[200px] w-44 md:py-3 py-2 rounded-lg mt-10">
+              <button className="bg-[#9810FA] text-white font-medium text-base sm:w-[200px] w-44 md:py-3 py-2 rounded-lg mt-10">
                 Upgrade Plan
               </button>
             </div>
@@ -169,7 +169,7 @@ const Subscription = () => {
                             MASTERCARD404010
                           </td>
                           <td
-                            className={`border-b border-[#E5E7EB]  px-4 py-3 text-sm font-normal whitespace-nowrap ${index === 0 ? "text-[#293FE3]" : "text-[#4B5563]"}`}
+                            className={`border-b border-[#E5E7EB]  px-4 py-3 text-sm font-normal whitespace-nowrap ${index === 0 ? "text-[#9810FA]" : "text-[#4B5563]"}`}
                           >
                             Paid On 28/11/2024
                           </td>
@@ -186,7 +186,7 @@ const Subscription = () => {
       {activeTab === "Plans" && (
         <div className="mt-6">
           <div>
-            <h3 className="text-[#293FE3] md:text-xl text-lg font-semibold">
+            <h3 className="text-[#9810FA] md:text-xl text-lg font-semibold">
               Pricing Plans
             </h3>
             <p className="lg:text-base sm:text-sm text-sm mt-3">
@@ -224,7 +224,7 @@ const Subscription = () => {
                     <h4 className="text-[#4B5563] font-semibold md:text-sm text-xs uppercase tracking-wide mb-1">
                       Service Type
                     </h4>
-                    <span className="text-[#293FE3] font-semibold md:text-base text-sm bg-[#293FE3]/10 px-3 py-1 rounded-lg inline-block">
+                    <span className="text-[#9810FA] font-semibold md:text-base text-sm bg-[#9810FA]/10 px-3 py-1 rounded-lg inline-block">
                       {item.service_type}
                     </span>
                   </div>
@@ -261,7 +261,7 @@ const Subscription = () => {
                       {item?.Features?.map((feature, idx) => (
                         <span
                           key={idx}
-                          className="bg-[#293FE3]/5 border border-[#293FE3] text-[#293FE3] px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#293FE3]/10 transition-colors"
+                          className="bg-[#9810FA]/5 border border-[#9810FA] text-[#9810FA] px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#9810FA]/10 transition-colors"
                         >
                           ✓ {feature?.feature_name}
                         </span>
@@ -271,7 +271,7 @@ const Subscription = () => {
 
                   {/* Action Button */}
                   <div className="flex gap-2 pt-4 border-t border-[#E5E7EB]">
-                    <button className="flex-1 bg-[#293FE3] hover:bg-[#1e2fa8] text-white font-medium md:text-sm text-xs py-2 rounded-lg transition-colors">
+                    <button className="flex-1 bg-[#9810FA] hover:bg-[#1e2fa8] text-white font-medium md:text-sm text-xs py-2 rounded-lg transition-colors">
                       Subscribe Now
                     </button>
                   </div>
@@ -333,7 +333,7 @@ const Subscription = () => {
           <button
             type="button"
             name="payNow"
-            className="bg-[#293FE3] text-white font-medium text-base xl:w-[504px] lg:w-[400px] md:w-80 sm:w-64 w-52 md:py-3 py-2 rounded-lg mt-10"
+            className="bg-[#9810FA] text-white font-medium text-base xl:w-[504px] lg:w-[400px] md:w-80 sm:w-64 w-52 md:py-3 py-2 rounded-lg mt-10"
           >
             Pay Now
           </button>

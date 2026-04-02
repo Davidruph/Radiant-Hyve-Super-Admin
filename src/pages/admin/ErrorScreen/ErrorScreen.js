@@ -4,7 +4,7 @@ import errorIllustration from "../../../assets/Svg/error-illustration.svg";
 function Main() {
   const navigate = useNavigate();
   return (
-    <div className="h-screen w-full bg-[#293FE3] overflow-hidden">
+    <div className="h-screen w-full bg-[#9810FA] overflow-hidden">
       <div className="py-2">
         <div className="container">
           <div className="flex flex-col items-center justify-center h-screen text-center error-page lg:flex-row lg:text-left">

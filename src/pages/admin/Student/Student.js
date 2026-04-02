@@ -396,7 +396,7 @@ export default function Staff() {
                     />
                   </div>
                   <button
-                    className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#293FE3] rounded-lg"
+                    className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#9810FA] rounded-lg"
                     onClick={handleAddStudents}
                   >
                     <FiPlus className="text-white text-2xl" />
@@ -542,7 +542,7 @@ export default function Staff() {
                               <button
                                 type="button"
                                 onClick={handleRemoveImage}
-                                className="absolute top-0 -right-0 bg-[#293FE3] border border-gray-300 rounded-full p-1 shadow"
+                                className="absolute top-0 -right-0 bg-[#9810FA] border border-gray-300 rounded-full p-1 shadow"
                               >
                                 <FiX className="text-white w-4 h-4" />
                               </button>
@@ -709,7 +709,7 @@ export default function Staff() {
                         <button
                           // disabled={btnLoader}
                           type="submit"
-                          className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                          className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                         >
                           {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                         </button>

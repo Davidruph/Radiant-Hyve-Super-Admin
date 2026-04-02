@@ -74,7 +74,7 @@ export default function MealTracking() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -277,7 +277,7 @@ export default function MealTracking() {
         </h2>
         <div className="flex sm:flex-row flex-col items-start md:gap-2 gap-3">
           <button
-            className="flex items-center justify-center w-[180px] space-x-1 py-2 px-5 bg-[#293FE3] rounded-lg"
+            className="flex items-center justify-center w-[180px] space-x-1 py-2 px-5 bg-[#9810FA] rounded-lg"
             onClick={() => {
               setBtnLoader(false);
               setDob(null);
@@ -592,7 +592,7 @@ export default function MealTracking() {
                               }}
                               className={`lg:px-4 px-2 py-2 border border-[#E5E7EB] rounded-lg lg:w-[70px] w-[60px] h-[40px] text-[#9CA3AF] font-normal md:text-sm text-xs transition ${
                                 values.selected_days.includes(day.value)
-                                  ? "bg-[#293FE3] text-white"
+                                  ? "bg-[#9810FA] text-white"
                                   : "bg-white"
                               }`}
                             >
@@ -650,7 +650,7 @@ export default function MealTracking() {
                             className={`md:w-6 w-4 md:h-6 h-4 md:rounded-lg rounded-md p-0.5 border-2 border-gray-400 flex items-center justify-center ${
                               values.student
                                 ? "opacity-50 pointer-events-none"
-                                : "peer-checked:bg-[#293FE3] peer-checked:border-[#293FE3]"
+                                : "peer-checked:bg-[#9810FA] peer-checked:border-[#9810FA]"
                             }`}
                           >
                             <FaCheck className="text-white" />
@@ -673,7 +673,7 @@ export default function MealTracking() {
                       <button
                         type="submit"
                         disabled={btnLoader}
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>

@@ -14,6 +14,12 @@ import { FaCaretUp, FaSort, FaSortDown } from "react-icons/fa";
 import revenueIcon from "../../../assets/icons/revenueIcon.png";
 import toast from "react-hot-toast";
 import { getSchoolListApi } from "../../../services/api_services";
+import Card from "../../../components/Card/Card";
+import { LuSchool } from "react-icons/lu";
+import { PiRecycle } from "react-icons/pi";
+import { FaCoins } from "react-icons/fa6";
+import { GiCoins } from "react-icons/gi";
+import { GiTwoCoins } from "react-icons/gi";
 
 const Dashboard = () => {
   const [detailsModal, setDetailsModal] = useState(false);
@@ -47,7 +53,7 @@ const Dashboard = () => {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-3 rounded-full py-1.5 mr-2"
           }
         >
@@ -88,28 +94,28 @@ const Dashboard = () => {
 
   const dashboardDetails = [
     {
-      image: school_img,
-      name: "School",
+      icon: <LuSchool className="text-white text-2xl" />,
+      title: "Total Schools",
       count: schoolData?.total_school ? schoolData?.total_school : "0",
       path: "/super_admin/manage_school"
     },
     {
-      image: subscribed_img,
-      name: "Subscribed",
+      icon: <PiRecycle className="text-white text-2xl" />,
+      title: "Subscribed",
       count: "32",
       path: "/super_admin/subscription_service"
     },
     {
-      image: revenueIcon,
-      name: "Monthly Revenue",
+      icon: <GiTwoCoins className="text-white text-2xl" />,
+      title: "Monthly Revenue",
       count: "$2000",
-      path: ""
+      path: "#"
     },
     {
-      image: revenueIcon,
-      name: "Yearly Revenue",
+      icon: <FaCoins className="text-white text-2xl" />,
+      title: "Yearly Revenue",
       count: "$25,000",
-      path: ""
+      path: "#"
     }
   ];
 
@@ -163,8 +169,20 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="grid grid-cols-12 2xl:gap-x-6 lg:gap-x-5 gap-4">
+      <div className="w-full flex flex-wrap gap-4 mb-5 items-center justify-center md:items-start md:justify-start">
         {dashboardDetails &&
+          dashboardDetails.map((item, index) => (
+            <Card
+              key={index}
+              title={item.title}
+              count={item.count}
+              summary={item.summary}
+              icon={item.icon}
+            />
+          ))}
+      </div>
+      <div className="grid grid-cols-12 2xl:gap-x-6 lg:gap-x-5 gap-4">
+        {/* {dashboardDetails &&
           dashboardDetails.map((item, index) => (
             <div
               className="xl:col-span-3 lg:col-span-4 sm:col-span-4 col-span-12"
@@ -191,7 +209,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          ))}
+          ))} */}
         <div className="bg-[#FFFFFF] py-4 md:px-4 px-3 rounded-lg col-span-12 mt-5">
           <h2 className="text-[#1F1F1F] font-medium text-lg mb-4">
             Subscription School List

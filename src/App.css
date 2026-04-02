@@ -2,7 +2,6 @@
 
 * {
   font-family: "Poppins", serif;
-  /* touch-action: pan-y; */
 }
 
 @keyframes dropdown {
@@ -160,7 +159,7 @@
 
 .Staffcalender .react-calendar__tile--active {
   color: white !important;
-  background-color: #293fe3 !important;
+  background-color: #9810fa !important;
   border-radius: 50% !important;
   height: 50px !important;
   display: flex !important;
@@ -196,7 +195,7 @@
 
   .Staffcalender .react-calendar__tile--active {
     color: white !important;
-    background-color: #293fe3 !important;
+    background-color: #9810fa !important;
     border-radius: 50% !important;
     height: 48px !important;
     display: flex !important;
@@ -210,7 +209,7 @@
 }
 
 .custom2 {
-  @apply bg-[#293FE3] text-white rounded-full font-bold h-[40px] !important;
+  @apply bg-[#9810FA] text-white rounded-full font-bold h-[40px] !important;
 }
 
 .custom3 {
@@ -364,13 +363,13 @@
 }
 
 .events_calendar .rmdp-month-picker .rmdp-selected span {
-  background-color: #293fe3 !important;
+  background-color: #9810fa !important;
   width: 100px !important;
   color: white !important;
 }
 
 .events_calendar .rmdp-year-picker .rmdp-selected span {
-  background-color: #293fe3 !important;
+  background-color: #9810fa !important;
   width: 100px !important;
   color: white !important;
 }

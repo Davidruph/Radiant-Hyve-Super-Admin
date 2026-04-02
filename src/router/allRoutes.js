@@ -5,6 +5,7 @@ import SuperAdminLogin from "../pages/super_admin/Login/Login";
 import SchoolDetails from "../pages/super_admin/ManageSchool/SchoolDetails";
 import ManageSchool from "../pages/super_admin/ManageSchool/ManageSchool";
 import SubscriptionService from "../pages/super_admin/SubscriptionService/SubscriptionService";
+import SearchResults from "../pages/admin/Search/SearchResults";
 
 //admin routes
 import AdminDashboard from "../pages/admin/Dashboard/Dashboard";
@@ -129,5 +130,6 @@ export const privateRouters = [
   { path: "/school_admin/payment", element: <Payment /> },
   { path: "/school_admin/subscription", element: <Subscription /> },
   { path: "/school_admin/profile", element: <Profile /> },
-  { path: "/school_admin/parent_reminder", element: <ParentReminder /> }
+  { path: "/school_admin/parent_reminder", element: <ParentReminder /> },
+  { path: "/school_admin/search", element: <SearchResults /> }
 ];

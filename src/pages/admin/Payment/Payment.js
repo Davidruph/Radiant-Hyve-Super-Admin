@@ -208,7 +208,7 @@ const Payment = () => {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -861,7 +861,7 @@ const Payment = () => {
                                   setMarkAsCompleteModal(true);
                                   setMarkAsCompleteInfo(item);
                                 }}
-                                className={`cursor-pointer bg-[#293FE3] text-[#FFFFFF] py-2 text-sm text-center px-5 gap-1 rounded-full`}
+                                className={`cursor-pointer bg-[#9810FA] text-[#FFFFFF] py-2 text-sm text-center px-5 gap-1 rounded-full`}
                               >
                                 <span className="font-normal text-sm">
                                   Mark as Complete
@@ -1008,7 +1008,7 @@ const Payment = () => {
           <Dialog.Description className="">
             <div className="md:h-[600px] h-[500px] overflow-auto">
               <div id="invoicepdf" className="w-full">
-                <div className="flex justify-center bg-[#293FE3] rounded-t-2xl py-3 w-full items-center">
+                <div className="flex justify-center bg-[#9810FA] rounded-t-2xl py-3 w-full items-center">
                   <img
                     src={radianthvye_logo}
                     className="h-12 py-2 object-cover"
@@ -1102,7 +1102,7 @@ const Payment = () => {
                   </button>
                   <button
                     type="button"
-                    className="bg-[#293FE3] text-white font-medium text-sm w-52 h-11 rounded-lg flex items-center justify-center gap-2"
+                    className="bg-[#9810FA] text-white font-medium text-sm w-52 h-11 rounded-lg flex items-center justify-center gap-2"
                     onClick={() => viewPDF()}
                   >
                     <img src={receiptIcon} alt="..." className="w-4" />
@@ -1225,7 +1225,7 @@ const Payment = () => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? <DotLoader color="#fff" /> : "Submit"}
                       </button>
@@ -1339,7 +1339,7 @@ const Payment = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                      className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                     >
                       {markAsCompleteBtnLoader ? (
                         <DotLoader color="#fff" />

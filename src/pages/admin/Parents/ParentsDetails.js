@@ -394,7 +394,7 @@ export default function ParentsDetails() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -975,7 +975,7 @@ export default function ParentsDetails() {
                         <button
                           disabled={btnLoader}
                           type="submit"
-                          className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                          className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                         >
                           {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                         </button>
@@ -998,7 +998,7 @@ export default function ParentsDetails() {
           <Dialog.Description className="">
             <div className="md:px-8 px-3 py-5">
               <div className="w-full relative sm:text-center text-start my-3">
-                <h1 className="md:text-lg text-base font-semibold text-[#293FE3]">
+                <h1 className="md:text-lg text-base font-semibold text-[#9810FA]">
                   Update Parent Account Information
                 </h1>
                 <button
@@ -1107,7 +1107,7 @@ export default function ParentsDetails() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : "Update"}
                       </button>

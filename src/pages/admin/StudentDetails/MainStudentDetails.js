@@ -116,7 +116,7 @@ export default function StudentDetails() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -309,7 +309,7 @@ export default function StudentDetails() {
                             <div
                               className={`${
                                 Item.attendance_status === "absent"
-                                  ? "bg-[#E9ECF1] text-[#293FE3]"
+                                  ? "bg-[#E9ECF1] text-[#9810FA]"
                                   : "bg-[#E8F6EC] text-[#1BA345]"
                               } w-28 text-center font-normal text-sm rounded-full py-1`}
                             >

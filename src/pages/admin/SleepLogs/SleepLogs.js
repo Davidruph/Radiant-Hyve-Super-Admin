@@ -56,7 +56,7 @@ const SleepLogs = () => {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-3 rounded-full py-1.5 mr-2"
           }
         >
@@ -500,7 +500,7 @@ const SleepLogs = () => {
                     <button
                       disabled={btnLoader}
                       type="submit"
-                      className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                      className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                     >
                       {btnLoader ? <DotLoader color="#fff" /> : "Save"}
                     </button>

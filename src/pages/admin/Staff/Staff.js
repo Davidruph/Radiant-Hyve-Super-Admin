@@ -303,7 +303,7 @@ export default function Staff() {
                   </div>
 
                   <button
-                    className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#293FE3] rounded-lg"
+                    className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#9810FA] rounded-lg"
                     onClick={handleAddStaff}
                   >
                     <FiPlus className="text-white text-2xl" />
@@ -680,7 +680,7 @@ export default function Staff() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>

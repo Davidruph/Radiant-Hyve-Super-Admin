@@ -1,39 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import logo from "../../assets/logo/Frame 1.png";
 import dashboardIcon1 from "../../assets/icons/Dashboard.png";
-import dashboardIcon2 from "../../assets/icons/Graph.png";
+import dashboardIcon2 from "../../assets/icons/graph.svg";
 import SchoolIcon1 from "../../assets/icons/school(1).png";
-import SchoolIcon2 from "../../assets/icons/school(2).png";
-import MedalIcon2 from "../../assets/icons/medalStar(1).png";
+import SchoolIcon2 from "../../assets/icons/school2.svg";
+import MedalIcon2 from "../../assets/icons/medal.svg";
 import MedalIcon1 from "../../assets/icons/medal-star(2).png";
 
 //admin imports
 import PrincipalIcon1 from "../../assets/icons/owner 1.png";
-import PrincipalIcon2 from "../../assets/icons/owner.png";
+import PrincipalIcon2 from "../../assets/icons/owner.svg";
 import Staff1 from "../../assets/icons/training1.png";
-import Staff2 from "../../assets/icons/training2.png";
+import Staff2 from "../../assets/icons/training2.svg";
 import program1 from "../../assets/icons/calendarsearch1.png";
-import program2 from "../../assets/icons/calendarsearch2.png";
+import program2 from "../../assets/icons/calendarsearch2.svg";
 import Parents1 from "../../assets/icons/people.png";
-import Parents2 from "../../assets/icons/people1.png";
+import Parents2 from "../../assets/icons/people1.svg";
 import Student1 from "../../assets/icons/graduation1.png";
-import Student2 from "../../assets/icons/graduation2.png";
+import Student2 from "../../assets/icons/graduation2.svg";
 import UpcomingEvents1 from "../../assets/icons/calendar1.png";
-import UpcomingEvents2 from "../../assets/icons/calendar2.png";
+import UpcomingEvents2 from "../../assets/icons/calendar2.svg";
 import Certification1 from "../../assets/icons/medal_star1.png";
-import Certification2 from "../../assets/icons/medal_star2.png";
+import Certification2 from "../../assets/icons/medal_star2.svg";
 import MealTracking1 from "../../assets/icons/Meal_application_tracking1.png";
-import MealTracking2 from "../../assets/icons/Meal_application_tracking2.png";
+import MealTracking2 from "../../assets/icons/Meal_application_tracking2.svg";
 import SleepLogs1 from "../../assets/icons/sleep1.png";
-import SleepLogs2 from "../../assets/icons/sleep2.png";
+import SleepLogs2 from "../../assets/icons/sleep2.svg";
 import Medication1 from "../../assets/icons/Medication1.png";
-import Medication2 from "../../assets/icons/Medication2.png";
+import Medication2 from "../../assets/icons/Medication2.svg";
 import Payment1 from "../../assets/icons/Payment1.png";
-import Payment2 from "../../assets/icons/Payment2.png";
+import Payment2 from "../../assets/icons/Payment2.svg";
 import Subscription1 from "../../assets/icons/crown1.png";
-import Subscription2 from "../../assets/icons/Crown2.png";
+import Subscription2 from "../../assets/icons/Crown2.svg";
 import { leaveChatRoom } from "../LeaveRoom/LeaveRoom";
 import { FaUserFriends } from "react-icons/fa";
 
@@ -205,28 +204,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
   }, [sidebarOpen, setSidebarOpen]);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen flex-col">
       <div
         ref={sidebarRef}
-        className={`fixed z-10 inset-y-0 left-0 transition duration-300 bg-[#293FE3] transform ${
+        className={`h-full fixed z-10 inset-y-0 left-0 lg:top-0 top-[72px] lg:inset-y-0 transition duration-300 sidebar-new-bg transform ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:relative lg:translate-x-0 min-w-[275px]`}
+        } lg:relative lg:translate-x-0 lg:top-auto lg:left-auto min-w-[255.1999969482422px]`}
       >
-        <div
-          className="border-b border-[#F0F1F2] px-6 py-5 cursor-pointer"
-          onClick={() => handleTabClick(tabs[0])}
-        >
-          <img src={logo} className="w-[200px] h-[40px]" alt="Logo" />
-        </div>
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto flex flex-col items-center">
           <nav className="mt-8 mb-32 mx-3 space-y-3">
+            <p className="sidebar-nav-text text-center w-full">Navigation</p>
             {tabs.map((tab) => (
               <div
                 key={tab.name}
-                className={`flex w-full items-center h-[44px] px-4 cursor-pointer rounded-xl transition duration-200 font-medium text-sm ${
+                className={`flex w-full max-w-[207.1999969482422px] items-center h-[44px] px-4 cursor-pointer rounded-xl transition duration-200 sidebar-item ${
                   activeTab === tab.name
-                    ? "bg-[#FFFFFF] text-[#293FE3]"
-                    : "hover:bg-[#FFFFFF] hover:text-[#293FE3] text-[#DFE3EA]"
+                    ? "bg-[#FFFFFF] text-[#8200DB] sidebar-shadow"
+                    : "hover:bg-[#FFFFFF] hover:text-[#8200DB] text-[#DFE3EA]"
                 }`}
                 onClick={() => handleTabClick(tab)}
                 onMouseEnter={() => setHoveredTab(tab.name)}

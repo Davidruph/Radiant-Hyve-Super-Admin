@@ -96,7 +96,7 @@ export default function StaffLeave() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -442,7 +442,7 @@ export default function StaffLeave() {
                 <div className="mt-5 md:px-8 px-4 gap-5 flex justify-between md:w-[500px] mx-auto w-full mb-3">
                   <button
                     onClick={() => handleLeaveInfoModal("accept")}
-                    className="bg-[#293FE3] text-white px-4 text-sm h-12 rounded-lg w-full"
+                    className="bg-[#9810FA] text-white px-4 text-sm h-12 rounded-lg w-full"
                   >
                     {acceptLoading ? <DotLoader color="#fff" /> : " Accept"}
                   </button>
@@ -450,7 +450,7 @@ export default function StaffLeave() {
                     onClick={() => handleLeaveInfoModal("reject")}
                     className="bg-[#FFDED8] text-[#FF7373] text-sm px-4 h-12 rounded-lg w-full"
                   >
-                    {rejectLoading ? <DotLoader color="#293FE3" /> : " Reject"}
+                    {rejectLoading ? <DotLoader color="#9810FA" /> : " Reject"}
                   </button>
                 </div>
               ) : (

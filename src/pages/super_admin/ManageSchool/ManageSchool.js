@@ -70,7 +70,7 @@ export default function ManageSchoolPage() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-3 rounded-full py-1.5 mr-2"
           }
         >
@@ -284,7 +284,7 @@ export default function ManageSchoolPage() {
           School list
         </h2>
         <button
-          className="flex items-center self-end justify-center space-x-1 py-3 px-5 bg-[#293FE3] rounded-xl"
+          className="flex items-center self-end justify-center space-x-1 py-3 px-5 bg-[#9810FA] rounded-xl"
           onClick={() => {
             formik.resetForm();
             setIsModalOpens(true);
@@ -591,7 +591,7 @@ export default function ManageSchoolPage() {
                   <button
                     type="submit"
                     disabled={btnLoader}
-                    className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg flex items-center justify-center"
+                    className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg flex items-center justify-center"
                   >
                     {btnLoader ? <DotLoader color="#fff" /> : "Save"}
                   </button>

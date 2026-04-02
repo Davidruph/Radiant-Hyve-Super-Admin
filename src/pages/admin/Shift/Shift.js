@@ -57,7 +57,7 @@ export default function Shift() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -253,7 +253,7 @@ export default function Shift() {
             />
           </div>
           <button
-            className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#293FE3] rounded-lg"
+            className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#9810FA] rounded-lg"
             onClick={() => {
               setAddShiftModal(true);
               setEditData({});
@@ -546,7 +546,7 @@ export default function Shift() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>
@@ -679,7 +679,7 @@ export default function Shift() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>

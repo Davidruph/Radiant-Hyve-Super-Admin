@@ -411,7 +411,7 @@ const Profile = () => {
                       </button>
                       <button
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : "update"}
                       </button>
@@ -571,7 +571,7 @@ const Profile = () => {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : "update"}
                       </button>

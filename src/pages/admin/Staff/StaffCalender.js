@@ -46,7 +46,7 @@ export default function StaffCalendar() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -273,7 +273,7 @@ export default function StaffCalendar() {
                             }));
                             handleLeaveInfoModal("accept", leave?.id, index);
                           }}
-                          className="bg-[#293FE3] text-white text-sm px-4 h-12 rounded-lg w-full"
+                          className="bg-[#9810FA] text-white text-sm px-4 h-12 rounded-lg w-full"
                         >
                           {acceptLoading[leave?.id] ? (
                             <DotLoader color="#fff" />
@@ -295,7 +295,7 @@ export default function StaffCalendar() {
                           className="bg-[#FFDED8] text-[#FF7373] text-sm px-4 h-12 rounded-lg w-full"
                         >
                           {rejectLoading[leave?.id] ? (
-                            <DotLoader color="#293FE3" />
+                            <DotLoader color="#9810FA" />
                           ) : (
                             "Reject"
                           )}

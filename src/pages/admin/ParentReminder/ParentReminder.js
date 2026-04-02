@@ -139,7 +139,7 @@ export default function ParentReminder() {
                     value="all"
                     onChange={(e) => setFieldValue("sendTo", e.target.value)}
                     checked={values.sendTo === "all"}
-                    className="mr-2 accent-[#293FE3]"
+                    className="mr-2 accent-[#9810FA]"
                   />
                   <span className="text-gray-700">All Users</span>
                 </label>
@@ -150,7 +150,7 @@ export default function ParentReminder() {
                     value="select"
                     onChange={(e) => setFieldValue("sendTo", e.target.value)}
                     checked={values.sendTo === "select"}
-                    className="mr-2 accent-[#293FE3]"
+                    className="mr-2 accent-[#9810FA]"
                   />
                   <span className="text-gray-700">Select Users</span>
                 </label>
@@ -184,7 +184,7 @@ export default function ParentReminder() {
               <button
                 disabled={loader}
                 type="submit"
-                className="bg-[#293FE3] text-white font-medium text-sm md:w-40 w-full h-12 rounded-lg"
+                className="bg-[#9810FA] text-white font-medium text-sm md:w-40 w-full h-12 rounded-lg"
               >
                 {loader ? <DotLoader color="#fff" /> : `Send`}
               </button>

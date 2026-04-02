@@ -333,7 +333,7 @@ const ForgotPassword = () => {
             </form>
 
             <Link className="w-full text-center mt-4" to="/">
-              <span className="text-[#293FE3] text-center text-sm font-normal underline underline-offset-4">
+              <span className="text-[#9810FA] text-center text-sm font-normal underline underline-offset-4">
                 Back to Sign in
               </span>
             </Link>
@@ -372,7 +372,7 @@ const ForgotPassword = () => {
                       onBlur={formik.handleBlur}
                       onKeyDown={(e) => handleOtpBackspace(e, index)}
                       autoFocus={index === 0}
-                      className="w-[50px] h-[50px] border-[0.8px] border-[#D1D5DC] rounded-[10px] font-semibold text-center text-2xl text-[#0F1113] outline-none focus:border-[#293FE3]"
+                      className="w-[50px] h-[50px] border-[0.8px] border-[#D1D5DC] rounded-[10px] font-semibold text-center text-2xl text-[#0F1113] outline-none focus:border-[#9810FA]"
                     />
                   </div>
                 ))}
@@ -391,7 +391,7 @@ const ForgotPassword = () => {
                     type="button"
                     disabled={sending}
                     onClick={handleSendOrResendOTP}
-                    className="text-[#293FE3] font-semibold text-sm bg-transparent"
+                    className="text-[#9810FA] font-semibold text-sm bg-transparent"
                   >
                     Resend Code
                   </button>
@@ -408,7 +408,7 @@ const ForgotPassword = () => {
             </form>
 
             <Link className="w-full text-center mt-4" to="/">
-              <span className="text-[#293FE3] text-center text-sm font-normal underline underline-offset-4">
+              <span className="text-[#9810FA] text-center text-sm font-normal underline underline-offset-4">
                 Back to Sign in
               </span>
             </Link>
@@ -511,7 +511,7 @@ const ForgotPassword = () => {
             </form>
 
             <Link className="w-full text-center mt-4" to="/login">
-              <span className="text-[#293FE3] text-center text-sm font-normal underline underline-offset-4">
+              <span className="text-[#9810FA] text-center text-sm font-normal underline underline-offset-4">
                 Back to Sign in
               </span>
             </Link>

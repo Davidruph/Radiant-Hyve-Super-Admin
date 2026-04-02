@@ -243,7 +243,7 @@ const Login = () => {
                       disabled={btnLoader}
                       type="submit"
                       name="signin"
-                      className="bg-[#293FE3] text-white rounded-lg h-[52px] w-full font-medium outline-none"
+                      className="bg-[#9810FA] text-white rounded-lg h-[52px] w-full font-medium outline-none"
                     >
                       {btnLoader ? <DotLoader color="#fff" /> : " Sign in"}
                     </button>
@@ -296,7 +296,7 @@ const Login = () => {
               </button>
               <button
                 onClick={handleRetryPermission}
-                className="h-[40px] px-4 rounded-md bg-[#293FE3] text-white"
+                className="h-[40px] px-4 rounded-md bg-[#9810FA] text-white"
               >
                 Retry
               </button>

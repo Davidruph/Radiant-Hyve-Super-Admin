@@ -21,6 +21,7 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../../firebase/Firebase";
 import Dialog from "../../base-component/Dialog/Dialog";
 import { useAuth } from "../../context/AuthContext";
+import logoBlack from "../../assets/logo/blacklogo.svg";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -211,6 +212,9 @@ const Login = () => {
         </div>
 
         <div className="w-full md:w-1/2 bg-white flex flex-col items-start justify-center py-8 md:py-12 lg:py-[148.84px] px-6 md:px-12 lg:px-[156.2px]">
+          <div className="flex w-full justify-start mb-8 md:hidden">
+            <img src={logoBlack} alt="Logo" className="w-[259px] h-[48px]" />
+          </div>
           <h3 className="new-auth-title pb-2">Sign In to Radiant Hyve</h3>
           <p className="new-auth-sub mb-8">
             Enter your credentials to access your account

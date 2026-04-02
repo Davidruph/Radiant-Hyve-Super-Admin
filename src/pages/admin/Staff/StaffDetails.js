@@ -441,7 +441,7 @@ export default function StaffDetails() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium md:text-base text-sm py-1.5 mr-2"
           }
         >
@@ -681,7 +681,7 @@ export default function StaffDetails() {
             {loading ? (
               <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
             ) : (
-              <span className="text-[#293FE3] font-semibold md:text-lg text-base">
+              <span className="text-[#9810FA] font-semibold md:text-lg text-base">
                 {staffData?.total_student} Student
               </span>
             )}
@@ -1238,7 +1238,7 @@ export default function StaffDetails() {
                         <button
                           type="submit"
                           disabled={btnLoader}
-                          className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                          className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                         >
                           {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                         </button>
@@ -1261,7 +1261,7 @@ export default function StaffDetails() {
           <Dialog.Description className="">
             <div className="md:px-8 px-3 py-5">
               <div className="w-full relative sm:text-center text-start my-3">
-                <h1 className="md:text-lg text-base font-semibold text-[#293FE3]">
+                <h1 className="md:text-lg text-base font-semibold text-[#9810FA]">
                   Update Staff Account Information
                 </h1>
                 <button
@@ -1370,7 +1370,7 @@ export default function StaffDetails() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : "Update"}
                       </button>

@@ -611,7 +611,7 @@ export default function ChatModule() {
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50 flex justify-center">
               <button
                 onClick={scrollToBottom}
-                className="rounded-full bg-[#293FE3] hover:bg-[#1c2db3] text-white shadow transition"
+                className="rounded-full bg-[#9810FA] hover:bg-[#1c2db3] text-white shadow transition"
                 aria-label="Scroll to bottom"
               >
                 <IoArrowDownCircle size={32} />
@@ -761,7 +761,7 @@ export default function ChatModule() {
 
                             return (
                                 <div className="relative" key={dateLabel}>
-                                    <div className="sticky w-fit m-auto top-0 z-10 bg-[#293FE3] text-center p-2 text-white rounded-md sm:text-xs text-[10px] font-medium">
+                                    <div className="sticky w-fit m-auto top-0 z-10 bg-[#9810FA] text-center p-2 text-white rounded-md sm:text-xs text-[10px] font-medium">
                                         {dateLabel}
                                     </div>
 
@@ -909,7 +909,7 @@ export default function ChatModule() {
                         <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50 flex justify-center">
                             <button
                                 onClick={scrollToBottom}
-                                className="rounded-full bg-[#293FE3] hover:bg-[#1c2db3] text-white shadow transition"
+                                className="rounded-full bg-[#9810FA] hover:bg-[#1c2db3] text-white shadow transition"
                                 aria-label="Scroll to bottom"
                             >
                                 <IoArrowDownCircle size={32} />
@@ -937,7 +937,7 @@ export default function ChatModule() {
               >
                 <button
                   onClick={() => handleRemove(index)}
-                  className="absolute top-1 right-1 z-10 text-white bg-[#293FE3] bg-opacity-80 rounded-full p-0.5
+                  className="absolute top-1 right-1 z-10 text-white bg-[#9810FA] bg-opacity-80 rounded-full p-0.5
                                     hidden group-hover:block transition duration-300 ease-in-out hover:bg-opacity-90"
                 >
                   <RxCrossCircled className="text-lg" />
@@ -1078,7 +1078,7 @@ export default function ChatModule() {
                   handleSend();
                 }
               }}
-              className="flex-1 resize-none w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#293fe3a3]"
+              className="flex-1 resize-none w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9810FAa3]"
             />
           </div>
 
@@ -1086,7 +1086,7 @@ export default function ChatModule() {
             <button
               disabled={loader || (!input && previews.length === 0)}
               onClick={handleSend}
-              className="w-[45px] h-[45px] flex items-center justify-center rounded-xl bg-[#293fe3a3] disabled:opacity-50"
+              className="w-[45px] h-[45px] flex items-center justify-center rounded-xl bg-[#9810FAa3] disabled:opacity-50"
             >
               {loader ? (
                 <Oval

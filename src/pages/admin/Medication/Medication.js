@@ -55,7 +55,7 @@ const Medication = () => {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium text-sm py-1.5 mr-2"
           }
         >
@@ -239,7 +239,7 @@ const Medication = () => {
           Medication Activity Feed
         </h2>
         <button
-          className="bg-[#293FE3] px-3 py-2 rounded-lg text-white text-sm flex items-center gap-1.5 sm:mt-0 mt-4"
+          className="bg-[#9810FA] px-3 py-2 rounded-lg text-white text-sm flex items-center gap-1.5 sm:mt-0 mt-4"
           onClick={() => {
             setBtnLoader(false);
             setAddMedication(true);
@@ -576,7 +576,7 @@ const Medication = () => {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>

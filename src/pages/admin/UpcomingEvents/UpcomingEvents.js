@@ -55,7 +55,7 @@ export default function UpcomingEvents() {
   }, []);
 
   const colors = [
-    "#293FE3",
+    "#9810FA",
     "#1D3256",
     "#FFB30B",
     "#BF8608",
@@ -307,7 +307,7 @@ export default function UpcomingEvents() {
               setEditData(null);
               setAddEventModal(true);
             }}
-            className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#293FE3] rounded-lg"
+            className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#9810FA] rounded-lg"
           >
             <FiPlus className="text-white text-2xl" />
             <span className="text-white text-sm font-normal">Add Event</span>
@@ -622,7 +622,7 @@ export default function UpcomingEvents() {
                             <div
                               className={`w-5 h-5 border-2 border-gray-400 flex items-center justify-center rounded-md ${
                                 values.is_all
-                                  ? "bg-[#293FE3] border-[#293FE3]"
+                                  ? "bg-[#9810FA] border-[#9810FA]"
                                   : ""
                               } ${
                                 values.is_principal ||
@@ -664,7 +664,7 @@ export default function UpcomingEvents() {
                               <div
                                 className={`w-5 h-5 border-2 border-gray-400 flex items-center justify-center rounded-md ${
                                   values[key]
-                                    ? "bg-[#293FE3] border-[#293FE3]"
+                                    ? "bg-[#9810FA] border-[#9810FA]"
                                     : ""
                                 } ${values.is_all ? "cursor-not-allowed" : "cursor-pointer"}`}
                               >
@@ -741,7 +741,7 @@ export default function UpcomingEvents() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>
@@ -907,7 +907,7 @@ export default function UpcomingEvents() {
                             <div
                               className={`w-5 h-5 border-2 border-gray-400 flex items-center justify-center rounded-md ${
                                 values.is_all
-                                  ? "bg-[#293FE3] border-[#293FE3]"
+                                  ? "bg-[#9810FA] border-[#9810FA]"
                                   : ""
                               } ${
                                 values.is_principal ||
@@ -949,7 +949,7 @@ export default function UpcomingEvents() {
                               <div
                                 className={`w-5 h-5 border-2 border-gray-400 flex items-center justify-center rounded-md ${
                                   values[key]
-                                    ? "bg-[#293FE3] border-[#293FE3]"
+                                    ? "bg-[#9810FA] border-[#9810FA]"
                                     : ""
                                 } ${values.is_all ? "cursor-not-allowed" : "cursor-pointer"}`}
                               >
@@ -1026,7 +1026,7 @@ export default function UpcomingEvents() {
                       <button
                         disabled={btnLoader}
                         type="submit"
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>

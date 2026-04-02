@@ -64,7 +64,7 @@ export default function NewStudent({
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-4 rounded-lg font-medium text-sm py-1.5 mr-2"
           }
         >
@@ -314,7 +314,7 @@ export default function NewStudent({
                                 setSelectedStudent(Item);
                                 setIndexValue(index);
                               }}
-                              className="w-[112px] py-1 text-center rounded-full font-normal md:text-sm text-xs bg-[#E9ECF1] text-[#293FE3]"
+                              className="w-[112px] py-1 text-center rounded-full font-normal md:text-sm text-xs bg-[#E9ECF1] text-[#9810FA]"
                             >
                               Accept
                             </button>
@@ -570,7 +570,7 @@ export default function NewStudent({
                   <button
                     type="submit"
                     disabled={btnLoader}
-                    className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg flex items-center justify-center"
+                    className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg flex items-center justify-center"
                   >
                     {btnLoader ? <DotLoader color="#fff" size={20} /> : "Save"}
                   </button>

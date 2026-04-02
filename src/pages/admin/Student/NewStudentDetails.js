@@ -302,7 +302,7 @@ export default function NewStudentDetails() {
                         seBtnLoader(false);
                         setSelectedTeacher(null);
                       }}
-                      className="w-[112px] py-1 text-center rounded-full font-normal md:text-sm text-xs bg-[#E9ECF1] text-[#293FE3]"
+                      className="w-[112px] py-1 text-center rounded-full font-normal md:text-sm text-xs bg-[#E9ECF1] text-[#9810FA]"
                     >
                       Accept
                     </button>
@@ -360,7 +360,7 @@ export default function NewStudentDetails() {
                         seBtnLoader(false);
                         setSelectedTeacher(null);
                       }}
-                      className="w-[112px] py-1 text-center rounded-full font-normal md:text-sm text-xs bg-[#E9ECF1] text-[#293FE3]"
+                      className="w-[112px] py-1 text-center rounded-full font-normal md:text-sm text-xs bg-[#E9ECF1] text-[#9810FA]"
                     >
                       Accept
                     </button>
@@ -547,7 +547,7 @@ export default function NewStudentDetails() {
                   <button
                     type="submit"
                     disabled={btnLoader}
-                    className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg flex items-center justify-center"
+                    className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg flex items-center justify-center"
                   >
                     {btnLoader ? <DotLoader color="#fff" size={20} /> : "Save"}
                   </button>

@@ -295,7 +295,7 @@ export default function SubscriptionService() {
           onClick={() => handlePageChange(i)}
           className={
             i === pageNo
-              ? "bg-[#293FE3] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
+              ? "bg-[#9810FA] text-white rounded-lg px-4 py-1.5 mr-2 font-medium text-base border"
               : "text-gray-600 border border-[#F0F1F2] px-3 rounded-full py-1.5 mr-2"
           }
         >
@@ -345,7 +345,7 @@ export default function SubscriptionService() {
           Subscription Service
         </h2>
         <button
-          className="flex items-center self-end justify-center space-x-1 py-3 px-5 bg-[#293FE3] rounded-xl"
+          className="flex items-center self-end justify-center space-x-1 py-3 px-5 bg-[#9810FA] rounded-xl"
           onClick={() => setAddSubscriptionModal(true)}
         >
           <FiPlus className="text-white text-2xl" />
@@ -384,7 +384,7 @@ export default function SubscriptionService() {
                 <h4 className="text-[#4B5563] font-semibold md:text-sm text-xs uppercase tracking-wide mb-1">
                   Service Type
                 </h4>
-                <span className="text-[#293FE3] font-semibold md:text-base text-sm bg-[#293FE3]/10 px-3 py-1 rounded-lg inline-block">
+                <span className="text-[#9810FA] font-semibold md:text-base text-sm bg-[#9810FA]/10 px-3 py-1 rounded-lg inline-block">
                   {item.service_type}
                 </span>
               </div>
@@ -419,7 +419,7 @@ export default function SubscriptionService() {
                   {item?.Features?.map((feature, idx) => (
                     <span
                       key={idx}
-                      className="bg-[#293FE3]/5 border border-[#293FE3] text-[#293FE3] px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#293FE3]/10 transition-colors"
+                      className="bg-[#9810FA]/5 border border-[#9810FA] text-[#9810FA] px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#9810FA]/10 transition-colors"
                     >
                       ✓ {feature?.feature_name}
                     </span>
@@ -431,7 +431,7 @@ export default function SubscriptionService() {
               <div className="flex gap-2 pt-4 border-t border-[#E5E7EB]">
                 <button
                   onClick={() => handleEditClick(item)}
-                  className="flex-1 bg-[#293FE3] hover:bg-[#1e2fa8] text-white font-medium md:text-sm text-xs py-2 rounded-lg transition-colors"
+                  className="flex-1 bg-[#9810FA] hover:bg-[#1e2fa8] text-white font-medium md:text-sm text-xs py-2 rounded-lg transition-colors"
                 >
                   Edit Plan
                 </button>
@@ -444,7 +444,7 @@ export default function SubscriptionService() {
         <h2 className="text-[#1F1F1F] font-semibold md:text-xl text-lg">
           Subscribed Member List
         </h2>
-        <button className="flex items-center self-end justify-center space-x-1 py-3 px-5 bg-[#293FE3] rounded-xl">
+        <button className="flex items-center self-end justify-center space-x-1 py-3 px-5 bg-[#9810FA] rounded-xl">
           <img src={documentIcon2} alt="" className="w-[24px] h-[24px]" />
           <span className="text-white md:text-base text-sm font-medium">
             Download
@@ -504,7 +504,7 @@ export default function SubscriptionService() {
                   <td className="border-b border-[#E5E7EB] text-green-500 px-4 py-2 md:text-base text-sm font-semibold whitespace-nowrap">
                     {item.amount}
                   </td>
-                  <td className="border-b border-[#E5E7EB] text-[#293FE3] px-4 py-2 md:text-base text-sm font-semibold whitespace-nowrap">
+                  <td className="border-b border-[#E5E7EB] text-[#9810FA] px-4 py-2 md:text-base text-sm font-semibold whitespace-nowrap">
                     {item.plan}
                   </td>
                   <td className="border-b border-[#E5E7EB] text-[#1F1F1F] px-4 py-2 md:text-base text-sm font-normal whitespace-nowrap">
@@ -615,7 +615,7 @@ export default function SubscriptionService() {
                     <h4 className="text-[#4B5563] font-normal md:text-base text-sm">
                       Subscription Plan
                     </h4>
-                    <span className="text-[#293FE3] font-semibold md:text-base text-sm">
+                    <span className="text-[#9810FA] font-semibold md:text-base text-sm">
                       Monthly
                     </span>
                   </div>
@@ -827,7 +827,7 @@ export default function SubscriptionService() {
                   <button
                     type="submit"
                     onClick={handleSubmit}
-                    className="bg-[#293FE3] text-white font-medium md:text-base text-sm w-full md:py-3 py-2 rounded-lg"
+                    className="bg-[#9810FA] text-white font-medium md:text-base text-sm w-full md:py-3 py-2 rounded-lg"
                   >
                     {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                   </button>
@@ -1015,7 +1015,7 @@ export default function SubscriptionService() {
                   <button
                     type="submit"
                     onClick={handleSubmit}
-                    className="bg-[#293FE3] text-white font-medium md:text-base text-sm w-full md:py-3 py-2 rounded-lg"
+                    className="bg-[#9810FA] text-white font-medium md:text-base text-sm w-full md:py-3 py-2 rounded-lg"
                   >
                     {btnLoader ? <DotLoader color="#fff" /> : " Update"}
                   </button>

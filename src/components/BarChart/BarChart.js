@@ -9,7 +9,7 @@ function Main({ width = "auto", height = "auto", className = "" }) {
         barThickness: 23,
         maxBarThickness: 15,
         data: [1100, 1100, 1200, 1500, 1000, 2000],
-        backgroundColor: "#293FE3"
+        backgroundColor: "#9810FA"
       },
       {
         label: "Absent",

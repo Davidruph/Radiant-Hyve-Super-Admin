@@ -399,7 +399,7 @@ const MealTrackingDetails = () => {
                       key={index}
                       className={`px-4 py-2 w-[80px] h-[40px] text-sm rounded-lg transition-all duration-150 ${
                         day.selected
-                          ? "bg-[#293FE3] text-white"
+                          ? "bg-[#9810FA] text-white"
                           : "bg-white border border-[#E5E7EB] text-[#9CA3AF]"
                       }`}
                     >
@@ -522,7 +522,7 @@ const MealTrackingDetails = () => {
                               }}
                               className={`lg:px-4 px-2 py-2 border border-[#E5E7EB] rounded-lg lg:w-[70px] w-[60px] h-[40px] text-[#9CA3AF] font-normal md:text-sm text-xs transition ${
                                 values.selected_days.includes(day.value)
-                                  ? "bg-[#293FE3] text-white"
+                                  ? "bg-[#9810FA] text-white"
                                   : "bg-white"
                               }`}
                             >
@@ -578,7 +578,7 @@ const MealTrackingDetails = () => {
                             className="hidden peer"
                           />
                           <div
-                            className={`md:w-6 w-4 md:h-6 h-4 md:rounded-lg rounded-md p-0.5 border-2 border-gray-400 flex items-center justify-center ${values.student ? "opacity-50 pointer-events-none" : "peer-checked:bg-[#293FE3] peer-checked:border-[#293FE3]"}`}
+                            className={`md:w-6 w-4 md:h-6 h-4 md:rounded-lg rounded-md p-0.5 border-2 border-gray-400 flex items-center justify-center ${values.student ? "opacity-50 pointer-events-none" : "peer-checked:bg-[#9810FA] peer-checked:border-[#9810FA]"}`}
                           >
                             <FaCheck className="text-white" />
                           </div>
@@ -600,7 +600,7 @@ const MealTrackingDetails = () => {
                       <button
                         type="submit"
                         disabled={btnLoader}
-                        className="bg-[#293FE3] text-white font-medium text-sm w-full h-12 rounded-lg"
+                        className="bg-[#9810FA] text-white font-medium text-sm w-full h-12 rounded-lg"
                       >
                         {btnLoader ? <DotLoader color="#fff" /> : " Save"}
                       </button>
