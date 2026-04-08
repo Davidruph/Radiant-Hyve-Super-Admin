@@ -101,7 +101,7 @@ const Dashboard = () => {
     },
     {
       icon: <PiRecycle className="text-white text-2xl" />,
-      title: "Subscribed",
+      title: "Active Subscriptions",
       count: "32",
       path: "/super_admin/subscription_service"
     },

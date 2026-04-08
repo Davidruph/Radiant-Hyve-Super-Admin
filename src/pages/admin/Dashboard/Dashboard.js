@@ -104,7 +104,7 @@ const Dashboard = () => {
   const dashboardDetails = [
     {
       icon: <LuUserRoundPen className="text-white text-2xl" />,
-      title: "Total Principal",
+      title: "Total Principals",
       count: dashboardData?.total_principal || 0,
       path: "/school_admin/principal"
     },
@@ -130,7 +130,7 @@ const Dashboard = () => {
     {
       icon: <LiaCoinsSolid className="text-white text-2xl" />,
       title: "Total Earnings",
-      count: `$${dashboardData?.total_earning || 0.0}`,
+      count: `$${!isNaN(parseFloat(dashboardData?.total_earning)) ? parseFloat(dashboardData?.total_earning).toFixed(2) : "0.00"}`,
       path: "/school_admin/payment"
     }
   ];

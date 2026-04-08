@@ -57,13 +57,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
       path: "/super_admin/dashboard"
     },
     {
-      name: "Mange School",
+      name: "Manage School",
       icon: SchoolIcon1,
       activeIcon: SchoolIcon2,
       path: "/super_admin/manage_school"
     },
     {
-      name: "Subscription Service",
+      name: "Manage Subscription",
       icon: MedalIcon1,
       activeIcon: MedalIcon2,
       path: "/super_admin/subscription_service"
