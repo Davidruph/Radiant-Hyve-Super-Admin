@@ -1,6 +1,9 @@
 // Get base URL from environment variables, fallback to default
 const BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://app.radianthyve.com:8800";
+
+// const BASE_URL = "http://localhost:8800";
+
 const IMG_URL =
   process.env.REACT_APP_API_IMG_URL || "https://app.radianthyve.com:8800/";
 

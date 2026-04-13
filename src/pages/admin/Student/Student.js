@@ -395,7 +395,7 @@ export default function Staff() {
                       className="input text-sm h-6 flex-1 outline-none border-none bg-transparent text-gray-800 px-2"
                     />
                   </div>
-                  <button
+                  {/* <button
                     className="flex items-center justify-center space-x-1 py-2 px-5 bg-[#9810FA] rounded-lg"
                     onClick={handleAddStudents}
                   >
@@ -403,7 +403,7 @@ export default function Staff() {
                     <span className="text-white text-sm font-normal">
                       Add Student
                     </span>
-                  </button>
+                  </button> */}
                 </div>
               ) : activeTab === 1 ? (
                 <div className="flex md:flex-row flex-col md:items-center items-start md:gap-4 gap-3">
