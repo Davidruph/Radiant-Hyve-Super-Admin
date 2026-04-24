@@ -1,8 +1,8 @@
 // Get base URL from environment variables, fallback to default
-const BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://app.radianthyve.com:8800";
+// const BASE_URL =
+//   process.env.REACT_APP_API_BASE_URL || "https://app.radianthyve.com:8800";
 
-// const BASE_URL = "http://localhost:8800";
+const BASE_URL = "http://localhost:8800";
 
 const IMG_URL =
   process.env.REACT_APP_API_IMG_URL || "https://app.radianthyve.com:8800/";
@@ -152,3 +152,32 @@ export const GET_PARENT_ADMIN_API = BASE_URL + "/get_parent_admin";
 export const CREATE_SUBSCRIPTION_API = BASE_URL + "/create_subscription_plan";
 export const GET_SUBSCRIPTION_API = BASE_URL + "/list_subscription_plans";
 export const UPDATE_SUBSCRIPTION_API = BASE_URL + "/update_subscription_plan";
+// Transportation - Vehicle Management
+export const ADD_VEHICLE_API = BASE_URL + "/api/transport/vehicle/add";
+export const GET_VEHICLES_API = BASE_URL + "/api/transport/vehicle/list";
+export const UPDATE_VEHICLE_API = BASE_URL + "/api/transport/vehicle/update";
+export const ASSIGN_DRIVER_VEHICLE_API =
+  BASE_URL + "/api/transport/vehicle/assign-driver";
+
+// Transportation - Route Management
+export const CREATE_ROUTE_API = BASE_URL + "/api/transport/route/create";
+export const GET_ROUTES_API = BASE_URL + "/api/transport/route/list";
+
+// Transportation - Route Execution
+export const START_ROUTE_API = BASE_URL + "/api/transport/route/start";
+export const UPDATE_PICKUP_STATUS_API =
+  BASE_URL + "/api/transport/route/pickup/update";
+export const COMPLETE_DROPOFF_API =
+  BASE_URL + "/api/transport/route/dropoff/complete";
+export const END_ROUTE_API = BASE_URL + "/api/transport/route/end";
+
+// Transportation - Drop-off Recipients
+export const ADD_DROPOFF_RECIPIENT_API =
+  BASE_URL + "/api/transport/recipient/add";
+
+// Transportation - Logs & Exceptions
+export const GET_TRANSPORT_LOGS_API = BASE_URL + "/api/transport/logs";
+export const GET_TRANSPORT_EXCEPTIONS_API =
+  BASE_URL + "/api/transport/exceptions";
+export const RESOLVE_EXCEPTION_API =
+  BASE_URL + "/api/transport/exceptions/resolve";

@@ -100,7 +100,21 @@ import {
   UPDATE_STAFF_LEAVE_API,
   CREATE_SUBSCRIPTION_API,
   GET_SUBSCRIPTION_API,
-  UPDATE_SUBSCRIPTION_API
+  UPDATE_SUBSCRIPTION_API,
+  ADD_VEHICLE_API,
+  GET_VEHICLES_API,
+  UPDATE_VEHICLE_API,
+  ASSIGN_DRIVER_VEHICLE_API,
+  CREATE_ROUTE_API,
+  GET_ROUTES_API,
+  START_ROUTE_API,
+  UPDATE_PICKUP_STATUS_API,
+  COMPLETE_DROPOFF_API,
+  END_ROUTE_API,
+  ADD_DROPOFF_RECIPIENT_API,
+  GET_TRANSPORT_LOGS_API,
+  GET_TRANSPORT_EXCEPTIONS_API,
+  RESOLVE_EXCEPTION_API
 } from "./api";
 
 axios.interceptors.request.use(
@@ -804,4 +818,113 @@ export const parentPushNotificationApi = (data) => {
   return axios.post(PARENT_PUSH_NOTIFICATION_API, data, {
     headers: header
   });
+};
+// =====================================================
+// TRANSPORTATION - VEHICLE MANAGEMENT
+// =====================================================
+
+export const addVehicleApi = (data) => {
+  return axios.post(require("./api").ADD_VEHICLE_API, data, {
+    headers: header
+  });
+};
+
+export const getVehiclesApi = (params) => {
+  return axios.get(require("./api").GET_VEHICLES_API, {
+    headers: header,
+    params
+  });
+};
+
+export const updateVehicleApi = (vehicleId, data) => {
+  return axios.put(
+    `${require("./api").UPDATE_VEHICLE_API}/${vehicleId}`,
+    data,
+    { headers: header }
+  );
+};
+
+export const assignDriverToVehicleApi = (data) => {
+  return axios.post(require("./api").ASSIGN_DRIVER_VEHICLE_API, data, {
+    headers: header
+  });
+};
+
+// =====================================================
+// TRANSPORTATION - ROUTE MANAGEMENT
+// =====================================================
+
+export const createRouteApi = (data) => {
+  return axios.post(require("./api").CREATE_ROUTE_API, data, {
+    headers: header
+  });
+};
+
+export const getRoutesApi = (params) => {
+  return axios.get(require("./api").GET_ROUTES_API, {
+    headers: header,
+    params
+  });
+};
+
+// =====================================================
+// TRANSPORTATION - ROUTE EXECUTION
+// =====================================================
+
+export const startRouteApi = (data) => {
+  return axios.post(require("./api").START_ROUTE_API, data, {
+    headers: header
+  });
+};
+
+export const updatePickupStatusApi = (data) => {
+  return axios.put(require("./api").UPDATE_PICKUP_STATUS_API, data, {
+    headers: header
+  });
+};
+
+export const completeDropoffApi = (data) => {
+  return axios.post(require("./api").COMPLETE_DROPOFF_API, data, {
+    headers: header
+  });
+};
+
+export const endRouteApi = (data) => {
+  return axios.post(require("./api").END_ROUTE_API, data, { headers: header });
+};
+
+// =====================================================
+// TRANSPORTATION - DROP-OFF RECIPIENTS
+// =====================================================
+
+export const addDropoffRecipientApi = (data) => {
+  return axios.post(require("./api").ADD_DROPOFF_RECIPIENT_API, data, {
+    headers: header
+  });
+};
+
+// =====================================================
+// TRANSPORTATION - LOGS & EXCEPTIONS
+// =====================================================
+
+export const getTransportLogsApi = (params) => {
+  return axios.get(require("./api").GET_TRANSPORT_LOGS_API, {
+    headers: header,
+    params
+  });
+};
+
+export const getTransportExceptionsApi = (params) => {
+  return axios.get(require("./api").GET_TRANSPORT_EXCEPTIONS_API, {
+    headers: header,
+    params
+  });
+};
+
+export const resolveExceptionApi = (exceptionId, data) => {
+  return axios.put(
+    `${require("./api").RESOLVE_EXCEPTION_API}/${exceptionId}`,
+    data,
+    { headers: header }
+  );
 };

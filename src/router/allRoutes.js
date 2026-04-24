@@ -43,6 +43,7 @@ import StaffCalender from "../pages/admin/Staff/StaffCalender";
 import ParentReminder from "../pages/admin/ParentReminder/ParentReminder";
 
 import TransportationHome from "../pages/admin/Transportation/Index";
+import DriverDashboard from "../pages/driver/Dashboard/Index";
 
 export const publicRouters = [
   { path: "*", element: <ErrorScreen /> },
@@ -134,5 +135,6 @@ export const privateRouters = [
   { path: "/school_admin/profile", element: <Profile /> },
   { path: "/school_admin/parent_reminder", element: <ParentReminder /> },
   { path: "/school_admin/search", element: <SearchResults /> },
-  { path: "/school_admin/transportation", element: <TransportationHome /> }
+  { path: "/school_admin/transportation", element: <TransportationHome /> },
+  { path: "/driver/dashboard", element: <DriverDashboard /> }
 ];

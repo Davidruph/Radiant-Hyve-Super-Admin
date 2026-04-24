@@ -1,5 +1,9 @@
 import { useState } from "react";
 import Tab from "../../../base-component/Tabs/Tabs";
+import Dashboard from "./Dashboard";
+import Vehicle from "./Vehicle";
+import Driver from "./Driver";
+import Route from "./Route";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -7,34 +11,57 @@ const Index = () => {
     setActiveTab(index);
   };
 
+  const tabLabels = [
+    "Dashboard",
+    "Vehicle Management",
+    "Driver Management",
+    "Route Management"
+  ];
+
   return (
     <div>
       <h2 className="text-[#1F1F1F] font-semibold md:text-lg text-base mb-4">
-        {activeTab === 0 ? "Vehicle" : "Driver"}
+        {tabLabels[activeTab]}
       </h2>
 
       <div>
         <div className="sm:space-y-0 space-y-4">
           <Tab.Group selectedIndex={activeTab} onChange={handleTabChange}>
-            <div
-              className={`flex ${activeTab === 0 ? "xl:flex-row flex-col" : "sm:flex-row flex-col"} justify-between xl:gap-0 gap-4`}
-            >
-              <Tab.List variant="link-tabs" className="w-[20%]">
+            <div className="flex sm:flex-row flex-col justify-between xl:gap-0 gap-4">
+              <Tab.List variant="link-tabs" className="w-auto">
                 <Tab>
                   <Tab.Button
-                    className="w-full py-2 whitespace-nowrap"
+                    className="py-2 px-4 whitespace-nowrap"
                     as="button"
                   >
-                    Vehicle
+                    Dashboard
                   </Tab.Button>
                 </Tab>
 
                 <Tab>
                   <Tab.Button
-                    className="w-full py-2 whitespace-nowrap"
+                    className="py-2 px-4 whitespace-nowrap"
                     as="button"
                   >
-                    Driver
+                    Vehicles
+                  </Tab.Button>
+                </Tab>
+
+                <Tab>
+                  <Tab.Button
+                    className="py-2 px-4 whitespace-nowrap"
+                    as="button"
+                  >
+                    Drivers
+                  </Tab.Button>
+                </Tab>
+
+                <Tab>
+                  <Tab.Button
+                    className="py-2 px-4 whitespace-nowrap"
+                    as="button"
+                  >
+                    Routes
                   </Tab.Button>
                 </Tab>
               </Tab.List>
@@ -42,11 +69,19 @@ const Index = () => {
 
             <Tab.Panels className="mt-5">
               <Tab.Panel className="leading-relaxed">
-                {activeTab === 0 && <h2>Vehicle Content</h2>}
+                {activeTab === 0 && <Dashboard />}
               </Tab.Panel>
 
               <Tab.Panel className="leading-relaxed">
-                {activeTab === 1 && <h2>Driver Content</h2>}
+                {activeTab === 1 && <Vehicle />}
+              </Tab.Panel>
+
+              <Tab.Panel className="leading-relaxed">
+                {activeTab === 2 && <Driver />}
+              </Tab.Panel>
+
+              <Tab.Panel className="leading-relaxed">
+                {activeTab === 3 && <Route />}
               </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>
