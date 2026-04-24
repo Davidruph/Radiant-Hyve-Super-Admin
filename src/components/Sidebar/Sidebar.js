@@ -33,8 +33,9 @@ import Payment1 from "../../assets/icons/Payment1.png";
 import Payment2 from "../../assets/icons/Payment2.svg";
 import Subscription1 from "../../assets/icons/crown1.png";
 import Subscription2 from "../../assets/icons/Crown2.svg";
+import Transportation1 from "../../assets/icons/transportation1.svg";
+import Transportation2 from "../../assets/icons/transportation2.svg";
 import { leaveChatRoom } from "../LeaveRoom/LeaveRoom";
-import { FaUserFriends } from "react-icons/fa";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
   const [hoveredTab, setHoveredTab] = useState(null);
@@ -161,6 +162,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
       icon: Subscription1,
       activeIcon: Subscription2,
       path: "/school_admin/subscription"
+    },
+    {
+      name: "Transportation",
+      icon: Transportation1,
+      activeIcon: Transportation2,
+      path: "/school_admin/transportation"
     }
   ];
 
