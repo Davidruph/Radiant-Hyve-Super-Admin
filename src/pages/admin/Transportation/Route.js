@@ -337,7 +337,7 @@ const Route = () => {
         open={createRouteModal}
         onClose={() => setCreateRouteModal(false)}
       >
-        <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all max-h-[90vh] overflow-y-auto">
+        <Dialog.Panel className="border w-full max-w-2xl transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all max-h-[90vh] overflow-y-auto">
           <Dialog.Title className="text-lg font-semibold mb-4">
             Create New Route
           </Dialog.Title>

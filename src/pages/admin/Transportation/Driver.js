@@ -67,9 +67,11 @@ const Driver = () => {
         role: "driver"
       });
 
+      console.log("response:", response);
+
       if (response.data.status === 1) {
         setDrivers(response.data.data);
-        setPageCount(response.data.pagination.pages);
+        setPageCount(response.data.totalPage);
       } else {
         toast.error(response.data.message || "Failed to fetch drivers");
       }
