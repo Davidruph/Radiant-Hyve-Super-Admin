@@ -4,11 +4,17 @@ import Dashboard from "./Dashboard";
 import Vehicle from "./Vehicle";
 import Driver from "./Driver";
 import Route from "./Route";
+import { useSearchParams } from "react-router-dom";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tabFromUrl = Number(searchParams.get("tab")) || 0;
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
+
   const handleTabChange = (index) => {
     setActiveTab(index);
+    setSearchParams({ tab: index });
   };
 
   const tabLabels = [
@@ -69,19 +75,19 @@ const Index = () => {
 
             <Tab.Panels className="mt-5">
               <Tab.Panel className="leading-relaxed">
-                {activeTab === 0 && <Dashboard />}
+                <Dashboard />
               </Tab.Panel>
 
               <Tab.Panel className="leading-relaxed">
-                {activeTab === 1 && <Vehicle />}
+                <Vehicle />
               </Tab.Panel>
 
               <Tab.Panel className="leading-relaxed">
-                {activeTab === 2 && <Driver />}
+                <Driver />
               </Tab.Panel>
 
               <Tab.Panel className="leading-relaxed">
-                {activeTab === 3 && <Route />}
+                <Route />
               </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>

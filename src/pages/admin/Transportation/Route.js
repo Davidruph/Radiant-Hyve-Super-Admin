@@ -19,9 +19,11 @@ import {
   createRouteApi,
   getRoutesApi,
   getVehiclesApi,
-  getAllStudentListApi
+  getAllStudentListApi,
+  getShiftApi
 } from "../../../services/api_services";
 import moment from "moment";
+import { useNavigate } from "react-router-dom";
 
 const routeValidationSchema = Yup.object().shape({
   route_name: Yup.string().required("Route name is required"),
@@ -105,10 +107,15 @@ const Route = () => {
 
   const getStudentsList = async () => {
     try {
-      const response = await getAllStudentListApi({ page: 1, search: "" });
+      const response = await getAllStudentListApi({
+        page: 1,
+        search: "",
+        shift_id: 0
+      });
 
       if (response.data.status === 1) {
         setStudents(response.data.data);
+        console.log("Fetched students:", response.data.data);
       }
     } catch (error) {
       console.error("Error fetching students:", error);
@@ -144,6 +151,9 @@ const Route = () => {
         student_assignments: studentAssignments
       };
 
+      // console.log("Creating route with data:", routeData);
+      // return;
+
       const response = await createRouteApi(routeData);
 
       if (response.data.status === 1) {
@@ -176,8 +186,11 @@ const Route = () => {
   };
 
   const getStudentName = (studentId) => {
-    const student = students.find((s) => s.id === studentId);
-    return student ? `${student.first_name} ${student.last_name}` : "Unknown";
+    const student = students.find((s) => s.id == studentId);
+    // console.log("Finding student name for ID:", studentId, "Found:", student);
+    console.log(selectedRoute);
+
+    return student ? `${student.full_name}` : "Unknown";
   };
 
   const getStatusColor = (status) => {
@@ -625,7 +638,7 @@ const Route = () => {
                                 <option value="">-- Student --</option>
                                 {students.map((s) => (
                                   <option key={s.id} value={s.id}>
-                                    {s.first_name} {s.last_name}
+                                    {s.full_name}
                                   </option>
                                 ))}
                               </Field>

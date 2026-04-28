@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Pagination from "../../../base-component/Pagination/Pagination";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
@@ -10,7 +10,6 @@ import Skeleton from "react-loading-skeleton";
 import { CgUnblock } from "react-icons/cg";
 import BlockIcon from "../../../assets/icons/block.png";
 import blockModalIcon from "../../../assets/icons/BlockIcon.png";
-import moment from "moment";
 import { DotLoader } from "../../../base-component/Loader/Loader";
 import Dialog from "../../../base-component/Dialog/Dialog";
 import { IoMdClose } from "react-icons/io";
@@ -183,7 +182,24 @@ export default function AllStudents({
                           {Item?.relation_to_child}
                         </td>
                         <td className="border-b border-[#E5E7EB] text-[#4B5563] px-4 py-2  text-sm font-normal whitespace-nowrap">
-                          {Item.request_status == "feesPending" ? (
+                          {Item.request_status === "feesPending" ? (
+                            <button
+                              onClick={() => {
+                                setBlockModal(true);
+                                setBlockStudentInfo(Item);
+                              }}
+                              className="bg-[#E9ECF1] py-2 flex items-center w-28 justify-center gap-1 rounded-full"
+                            >
+                              <img
+                                src={BlockIcon}
+                                className="w-4 h-4"
+                                alt="Block"
+                              />
+                              <span className="text-[#4B5563] font-normal text-sm">
+                                Block
+                              </span>
+                            </button>
+                          ) : Item.request_status === "accepted" ? (
                             <button
                               onClick={() => {
                                 setBlockModal(true);

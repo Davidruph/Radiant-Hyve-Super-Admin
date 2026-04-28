@@ -305,7 +305,7 @@ const Dashboard = () => {
                     className="p-6 hover:bg-gray-50 transition cursor-pointer"
                     onClick={() =>
                       setSelectedRoute(
-                        selectedRoute?.id === route.id ? null : route
+                        selectedRoute?.id == route.id ? null : route
                       )
                     }
                   >
@@ -315,7 +315,7 @@ const Dashboard = () => {
                           {route.route_name}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          Driver: {route.driver_name || "Not assigned"}
+                          Driver: {route?.driver?.full_name || "Not assigned"}
                         </p>
                       </div>
                       <span
@@ -332,7 +332,7 @@ const Dashboard = () => {
                       <div>
                         <p className="text-sm text-gray-600">Vehicle</p>
                         <p className="font-medium text-gray-800">
-                          {route.vehicle_name || "N/A"}
+                          {route?.vehicle?.vehicle_name || "N/A"}
                         </p>
                       </div>
                       <div>
