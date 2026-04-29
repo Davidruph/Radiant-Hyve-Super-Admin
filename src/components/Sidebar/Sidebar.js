@@ -42,7 +42,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarRef = useRef(null);
-  const { isSuperAdmin, isSchoolAdmin } = useAuth();
+  const { isSuperAdmin, isSchoolAdmin, isDriver } = useAuth();
   let userId = localStorage.getItem("radient_school_id");
 
   const handleLeaveRoom = () => {
@@ -171,8 +171,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
     }
   ];
 
+  // Driver tabs
+  const driverTabs = [
+    {
+      name: "Dashboard",
+      icon: dashboardIcon1,
+      activeIcon: dashboardIcon2,
+      path: "/driver/dashboard"
+    }
+    // {
+    //   name: "Route Execution",
+    //   icon: Transportation1,
+    //   activeIcon: Transportation2,
+    //   path: "/driver/route_execution"
+    // }
+  ];
+
   // Select tabs based on role
-  const tabs = isSuperAdmin ? superAdminTabs : schoolAdminTabs;
+  const tabs = isSuperAdmin
+    ? superAdminTabs
+    : isDriver
+      ? driverTabs
+      : schoolAdminTabs;
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -211,7 +231,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
   }, [sidebarOpen, setSidebarOpen]);
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className={`${isDriver ? "hidden" : "flex"} h-screen flex-col`}>
       <div
         ref={sidebarRef}
         className={`h-full fixed z-10 inset-y-0 left-0 lg:top-0 top-[72px] lg:inset-y-0 transition duration-300 sidebar-new-bg transform ${

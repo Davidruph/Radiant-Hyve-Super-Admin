@@ -143,7 +143,11 @@ const Login = () => {
             console.log("user data:", res?.data);
 
             // Check if user role is allowed for web login
-            if (userRole !== "school" && userRole !== "super_admin") {
+            if (
+              userRole !== "school" &&
+              userRole !== "super_admin" &&
+              userRole !== "driver"
+            ) {
               toast.error(
                 "This role is only available on the mobile app. Please use the mobile app to continue."
               );
@@ -153,9 +157,13 @@ const Login = () => {
 
             // Determine dashboard path based on role
             const dashboardPath =
-              userRole === "school"
-                ? "/school_admin/dashboard"
-                : "/super_admin/dashboard";
+              userRole === "super_admin"
+                ? "/super_admin/dashboard"
+                : userRole === "driver"
+                  ? "/driver/dashboard"
+                  : userRole === "school"
+                    ? "/school_admin/dashboard"
+                    : "/login";
 
             // Store in AuthContext and localStorage
             authLogin(res.data.token, userRole, datas);

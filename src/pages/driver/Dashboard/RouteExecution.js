@@ -49,8 +49,25 @@ const RouteExecution = () => {
   const [showPickupFlow, setShowPickupFlow] = useState(false);
   const [showDropoffFlow, setShowDropoffFlow] = useState(false);
   const [showEndRoute, setShowEndRoute] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedRoute, setSelectedRoute] = useState(null);
   const [routeStudents, setRouteStudents] = useState([]);
+  const [checklist, setChecklist] = useState({
+    vehicle: false,
+    safety: false,
+    gps: false,
+    students: false
+  });
+
+  const handleChecklistChange = (name) => {
+    setChecklist((prev) => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
+
+  const allChecked = Object.values(checklist).every(Boolean);
+
+  console.log(showRouteStart, selectedRoute);
 
   useEffect(() => {
     getAssignedRoutes();
@@ -79,7 +96,14 @@ const RouteExecution = () => {
 
   const handleStartRoute = async (route) => {
     try {
+      console.log("Starting route:", route);
+      if (!route || !route.id) {
+        toast.error("Invalid route selection");
+        return;
+      }
+
       const response = await startRouteApi({ route_id: route.id });
+      console.log("Start route response:", response);
 
       if (response.data.status === 1) {
         toast.success("Route started successfully! Live tracking activated.");
@@ -96,11 +120,11 @@ const RouteExecution = () => {
   };
 
   const handlePickupStudent = async (values, { resetForm }) => {
-    if (!selectedStudent) return;
+    if (!selectedRoute) return;
 
     try {
       const payload = {
-        student_transport_id: selectedStudent.id,
+        student_transport_id: selectedRoute.id,
         pickup_status: values.pickup_status,
         skip_reason: values.skip_reason || null,
         latitude: 0,
@@ -121,7 +145,7 @@ const RouteExecution = () => {
 
         setRouteStudents((prev) =>
           prev.map((s) =>
-            s.id === selectedStudent.id
+            s.id === selectedRoute.id
               ? { ...s, pickup_status: values.pickup_status }
               : s
           )
@@ -129,7 +153,7 @@ const RouteExecution = () => {
 
         resetForm();
         setShowPickupFlow(false);
-        setSelectedStudent(null);
+        setSelectedRoute(null);
       } else {
         toast.error(response.data.message || "Failed to update status");
       }
@@ -140,11 +164,11 @@ const RouteExecution = () => {
   };
 
   const handleDropoffStudent = async (values, { resetForm }) => {
-    if (!selectedStudent) return;
+    if (!selectedRoute) return;
 
     try {
       const payload = {
-        student_transport_id: selectedStudent.id,
+        student_transport_id: selectedRoute.id,
         recipient_type: values.recipient_type,
         recipient_name: values.recipient_name,
         latitude: 0,
@@ -158,7 +182,7 @@ const RouteExecution = () => {
 
         setRouteStudents((prev) =>
           prev.map((s) =>
-            s.id === selectedStudent.id
+            s.id === selectedRoute.id
               ? { ...s, current_status: "dropped_off" }
               : s
           )
@@ -166,7 +190,7 @@ const RouteExecution = () => {
 
         resetForm();
         setShowDropoffFlow(false);
-        setSelectedStudent(null);
+        setSelectedRoute(null);
       } else {
         toast.error(response.data.message || "Failed to complete dropoff");
       }
@@ -231,6 +255,8 @@ const RouteExecution = () => {
         return "bg-gray-100";
     }
   };
+
+  console.log("routeStudents:", routeStudents);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -328,10 +354,10 @@ const RouteExecution = () => {
                         </div>
                         <div>
                           <p className="font-medium text-gray-800">
-                            {student.student_name}
+                            {student?.student?.full_name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {student.student_id}
+                            {student?.student?.id}
                           </p>
                         </div>
                       </div>
@@ -353,7 +379,7 @@ const RouteExecution = () => {
                           <Fragment>
                             <button
                               onClick={() => {
-                                setSelectedStudent(student);
+                                setSelectedRoute(student);
                                 setShowPickupFlow(true);
                               }}
                               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition"
@@ -362,7 +388,7 @@ const RouteExecution = () => {
                             </button>
                             <button
                               onClick={() => {
-                                setSelectedStudent(student);
+                                setSelectedRoute(student);
                                 setShowDropoffFlow(true);
                               }}
                               className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition"
@@ -374,7 +400,7 @@ const RouteExecution = () => {
                         {student.pickup_status === "picked_up" && (
                           <button
                             onClick={() => {
-                              setSelectedStudent(student);
+                              setSelectedRoute(student);
                               setShowDropoffFlow(true);
                             }}
                             className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition"
@@ -419,7 +445,7 @@ const RouteExecution = () => {
                       {route.route_name}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {route.vehicle_name || "Unassigned Vehicle"}
+                      {route?.vehicle?.vehicle_name || "Unassigned Vehicle"}
                     </p>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
@@ -451,7 +477,7 @@ const RouteExecution = () => {
                 <button
                   onClick={() => {
                     setShowRouteStart(true);
-                    setSelectedStudent(route);
+                    setSelectedRoute(route);
                   }}
                   className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
                 >
@@ -465,350 +491,401 @@ const RouteExecution = () => {
       </div>
 
       <Dialog
-        show={showRouteStart}
-        setShow={setShowRouteStart}
+        open={showRouteStart}
+        // setShow={setShowRouteStart}
         title="Start Route - Safety Checklist"
         onClose={() => setShowRouteStart(false)}
       >
-        <div className="space-y-4 p-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <FiAlertCircle className="text-yellow-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium text-yellow-900">
-                  Pre-Start Checklist
-                </p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  Verify all safety checks before starting the route
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" />
-              <span className="text-gray-700 font-medium">
-                Vehicle inspection completed
-              </span>
-            </label>
-            <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" />
-              <span className="text-gray-700 font-medium">
-                All safety equipment present
-              </span>
-            </label>
-            <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" />
-              <span className="text-gray-700 font-medium">
-                GPS tracking enabled
-              </span>
-            </label>
-            <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" />
-              <span className="text-gray-700 font-medium">
-                All students ready
-              </span>
-            </label>
-          </div>
-
-          <div className="flex space-x-3 mt-6">
-            <button
-              onClick={() => handleStartRoute(selectedStudent)}
-              className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
-            >
-              <FiPlay className="inline mr-2" />
-              Start Route
-            </button>
-            <button
-              onClick={() => setShowRouteStart(false)}
-              className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </Dialog>
-
-      <Dialog
-        show={showPickupFlow}
-        setShow={setShowPickupFlow}
-        title={`Pickup - ${selectedStudent?.student_name}`}
-        onClose={() => {
-          setShowPickupFlow(false);
-          setSelectedStudent(null);
-        }}
-      >
-        <Formik
-          initialValues={{
-            pickup_status: "picked_up",
-            skip_reason: ""
-          }}
-          validationSchema={pickupValidationSchema}
-          onSubmit={handlePickupStudent}
-        >
-          {({ values }) => (
-            <Form className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Student Status
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <Field
-                      type="radio"
-                      name="pickup_status"
-                      value="picked_up"
-                      className="w-4 h-4"
-                    />
-                    <span className="ml-3 text-gray-700 font-medium">
-                      Picked Up
-                    </span>
-                  </label>
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <Field
-                      type="radio"
-                      name="pickup_status"
-                      value="absent"
-                      className="w-4 h-4"
-                    />
-                    <span className="ml-3 text-gray-700 font-medium">
-                      Absent
-                    </span>
-                  </label>
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <Field
-                      type="radio"
-                      name="pickup_status"
-                      value="skipped"
-                      className="w-4 h-4"
-                    />
-                    <span className="ml-3 text-gray-700 font-medium">
-                      Skipped
-                    </span>
-                  </label>
-                </div>
-                <ErrorMessage name="pickup_status">
-                  {(msg) => <p className="text-red-500 text-sm mt-1">{msg}</p>}
-                </ErrorMessage>
-              </div>
-
-              {values.pickup_status === "skipped" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reason for Skipping
-                  </label>
-                  <Field
-                    as="textarea"
-                    name="skip_reason"
-                    placeholder="Enter reason for skipping..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <ErrorMessage name="skip_reason">
-                    {(msg) => (
-                      <p className="text-red-500 text-sm mt-1">{msg}</p>
-                    )}
-                  </ErrorMessage>
-                </div>
-              )}
-
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
-                >
-                  <FiCheck className="inline mr-2" />
-                  Confirm
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPickupFlow(false);
-                    setSelectedStudent(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </Form>
-          )}
-        </Formik>
-      </Dialog>
-
-      <Dialog
-        show={showDropoffFlow}
-        setShow={setShowDropoffFlow}
-        title={`Dropoff - ${selectedStudent?.student_name}`}
-        onClose={() => {
-          setShowDropoffFlow(false);
-          setSelectedStudent(null);
-        }}
-      >
-        <Formik
-          initialValues={{
-            recipient_type: "parent",
-            recipient_name: ""
-          }}
-          validationSchema={dropoffValidationSchema}
-          onSubmit={handleDropoffStudent}
-        >
-          <Form className="p-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Recipient Type
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <Field
-                    type="radio"
-                    name="recipient_type"
-                    value="parent"
-                    className="w-4 h-4"
-                  />
-                  <span className="ml-3 text-gray-700 font-medium">Parent</span>
-                </label>
-                <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <Field
-                    type="radio"
-                    name="recipient_type"
-                    value="authorized_person"
-                    className="w-4 h-4"
-                  />
-                  <span className="ml-3 text-gray-700 font-medium">
-                    Authorized Person
-                  </span>
-                </label>
-              </div>
-              <ErrorMessage name="recipient_type">
-                {(msg) => <p className="text-red-500 text-sm mt-1">{msg}</p>}
-              </ErrorMessage>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recipient Name
-              </label>
-              <Field
-                type="text"
-                name="recipient_name"
-                placeholder="Enter recipient name..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <ErrorMessage name="recipient_name">
-                {(msg) => <p className="text-red-500 text-sm mt-1">{msg}</p>}
-              </ErrorMessage>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
-              >
-                <FiCheck className="inline mr-2" />
-                Complete Dropoff
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDropoffFlow(false);
-                  setSelectedStudent(null);
-                }}
-                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </Form>
-        </Formik>
-      </Dialog>
-
-      <Dialog
-        show={showEndRoute}
-        setShow={setShowEndRoute}
-        title="End Route - Mandatory Vehicle Check"
-        onClose={() => setShowEndRoute(false)}
-      >
-        <Formik
-          initialValues={{
-            vehicle_checked: false
-          }}
-          onSubmit={(values) => handleEndRoute(values)}
-        >
-          {({ values }) => (
-            <Form className="p-4 space-y-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <Dialog.Panel className="rounded-2xl">
+          <Dialog.Description className="">
+            <div className="space-y-4 p-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
-                  <FiAlertCircle className="text-red-600 mt-0.5 flex-shrink-0" />
+                  <FiAlertCircle className="text-yellow-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-red-900">
-                      Final Vehicle Check Required
+                    <p className="font-medium text-yellow-900">
+                      Pre-Start Checklist
                     </p>
-                    <p className="text-sm text-red-700 mt-1">
-                      You must physically verify that the vehicle has been
-                      checked and no students remain before closing the route.
+                    <p className="text-sm text-yellow-700 mt-1">
+                      Verify all safety checks before starting the route
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="space-y-2">
-                  <p className="font-medium text-blue-900">Route Summary:</p>
-                  <ul className="text-sm text-blue-700 space-y-1 ml-4">
-                    <li>✓ Total Students: {routeStudents.length}</li>
-                    <li>
-                      ✓ Picked Up:{" "}
-                      {
-                        routeStudents.filter(
-                          (s) => s.pickup_status === "picked_up"
-                        ).length
-                      }
-                    </li>
-                    <li>
-                      ✓ Dropped Off:{" "}
-                      {
-                        routeStudents.filter(
-                          (s) => s.current_status === "dropped_off"
-                        ).length
-                      }
-                    </li>
-                  </ul>
-                </div>
+              <div className="space-y-3">
+                <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.vehicle}
+                    onChange={() => handleChecklistChange("vehicle")}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-gray-700 font-medium">
+                    Vehicle inspection completed
+                  </span>
+                </label>
+                <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.safety}
+                    onChange={() => handleChecklistChange("safety")}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-gray-700 font-medium">
+                    All safety equipment present
+                  </span>
+                </label>
+                <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.gps}
+                    onChange={() => handleChecklistChange("gps")}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-gray-700 font-medium">
+                    GPS tracking enabled
+                  </span>
+                </label>
+                <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.students}
+                    onChange={() => handleChecklistChange("students")}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-gray-700 font-medium">
+                    All students ready
+                  </span>
+                </label>
               </div>
-
-              <label className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                <Field
-                  type="checkbox"
-                  name="vehicle_checked"
-                  className="w-4 h-4"
-                />
-                <span className="text-gray-700 font-medium">
-                  I confirm the vehicle has been checked and all students are
-                  accounted for
-                </span>
-              </label>
 
               <div className="flex space-x-3 mt-6">
                 <button
-                  type="submit"
-                  disabled={!values.vehicle_checked}
-                  className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition"
+                  onClick={() => handleStartRoute(selectedRoute)}
+                  disabled={!allChecked}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                    allChecked
+                      ? "bg-green-500 hover:bg-green-600 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
                 >
-                  <FiCheckCircle className="inline mr-2" />
-                  End Route
+                  <FiPlay className="inline mr-2" />
+                  Start Route
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setShowEndRoute(false)}
+                  onClick={() => setShowRouteStart(false)}
                   className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
                 >
                   Cancel
                 </button>
               </div>
-            </Form>
-          )}
-        </Formik>
+            </div>
+          </Dialog.Description>
+        </Dialog.Panel>
+      </Dialog>
+
+      <Dialog
+        open={showPickupFlow}
+        title={`Pickup - ${selectedRoute?.student_name}`}
+        onClose={() => {
+          setShowPickupFlow(false);
+          setSelectedRoute(null);
+        }}
+      >
+        <Dialog.Panel className="rounded-2xl">
+          <Dialog.Description className="">
+            <Formik
+              initialValues={{
+                pickup_status: "picked_up",
+                skip_reason: ""
+              }}
+              validationSchema={pickupValidationSchema}
+              onSubmit={handlePickupStudent}
+            >
+              {({ values }) => (
+                <Form className="p-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Student Status
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <Field
+                          type="radio"
+                          name="pickup_status"
+                          value="picked_up"
+                          className="w-4 h-4"
+                        />
+                        <span className="ml-3 text-gray-700 font-medium">
+                          Picked Up
+                        </span>
+                      </label>
+                      <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <Field
+                          type="radio"
+                          name="pickup_status"
+                          value="absent"
+                          className="w-4 h-4"
+                        />
+                        <span className="ml-3 text-gray-700 font-medium">
+                          Absent
+                        </span>
+                      </label>
+                      <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <Field
+                          type="radio"
+                          name="pickup_status"
+                          value="skipped"
+                          className="w-4 h-4"
+                        />
+                        <span className="ml-3 text-gray-700 font-medium">
+                          Skipped
+                        </span>
+                      </label>
+                    </div>
+                    <ErrorMessage name="pickup_status">
+                      {(msg) => (
+                        <p className="text-red-500 text-sm mt-1">{msg}</p>
+                      )}
+                    </ErrorMessage>
+                  </div>
+
+                  {values.pickup_status === "skipped" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Reason for Skipping
+                      </label>
+                      <Field
+                        as="textarea"
+                        name="skip_reason"
+                        placeholder="Enter reason for skipping..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <ErrorMessage name="skip_reason">
+                        {(msg) => (
+                          <p className="text-red-500 text-sm mt-1">{msg}</p>
+                        )}
+                      </ErrorMessage>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3 mt-6">
+                    <button
+                      type="submit"
+                      className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
+                    >
+                      <FiCheck className="inline mr-2" />
+                      Confirm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPickupFlow(false);
+                        setSelectedRoute(null);
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+          </Dialog.Description>
+        </Dialog.Panel>
+      </Dialog>
+
+      <Dialog
+        open={showDropoffFlow}
+        // setShow={setShowDropoffFlow}
+        title={`Dropoff - ${selectedRoute?.student_name}`}
+        onClose={() => {
+          setShowDropoffFlow(false);
+          setSelectedRoute(null);
+        }}
+      >
+        <Dialog.Panel className="rounded-2xl">
+          <Dialog.Description className="">
+            <Formik
+              initialValues={{
+                recipient_type: "parent",
+                recipient_name: ""
+              }}
+              validationSchema={dropoffValidationSchema}
+              onSubmit={handleDropoffStudent}
+            >
+              <Form className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Recipient Type
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <Field
+                        type="radio"
+                        name="recipient_type"
+                        value="parent"
+                        className="w-4 h-4"
+                      />
+                      <span className="ml-3 text-gray-700 font-medium">
+                        Parent
+                      </span>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <Field
+                        type="radio"
+                        name="recipient_type"
+                        value="authorized_person"
+                        className="w-4 h-4"
+                      />
+                      <span className="ml-3 text-gray-700 font-medium">
+                        Authorized Person
+                      </span>
+                    </label>
+                  </div>
+                  <ErrorMessage name="recipient_type">
+                    {(msg) => (
+                      <p className="text-red-500 text-sm mt-1">{msg}</p>
+                    )}
+                  </ErrorMessage>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Recipient Name
+                  </label>
+                  <Field
+                    type="text"
+                    name="recipient_name"
+                    placeholder="Enter recipient name..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage name="recipient_name">
+                    {(msg) => (
+                      <p className="text-red-500 text-sm mt-1">{msg}</p>
+                    )}
+                  </ErrorMessage>
+                </div>
+
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
+                  >
+                    <FiCheck className="inline mr-2" />
+                    Complete Dropoff
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropoffFlow(false);
+                      setSelectedRoute(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </Form>
+            </Formik>
+          </Dialog.Description>
+        </Dialog.Panel>
+      </Dialog>
+
+      <Dialog
+        open={showEndRoute}
+        // setShow={setShowEndRoute}
+        title="End Route - Mandatory Vehicle Check"
+        onClose={() => setShowEndRoute(false)}
+      >
+        <Dialog.Panel className="rounded-2xl">
+          <Dialog.Description className="">
+            <Formik
+              initialValues={{
+                vehicle_checked: false
+              }}
+              onSubmit={(values) => handleEndRoute(values)}
+            >
+              {({ values }) => (
+                <Form className="p-4 space-y-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <FiAlertCircle className="text-red-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-red-900">
+                          Final Vehicle Check Required
+                        </p>
+                        <p className="text-sm text-red-700 mt-1">
+                          You must physically verify that the vehicle has been
+                          checked and no students remain before closing the
+                          route.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="space-y-2">
+                      <p className="font-medium text-blue-900">
+                        Route Summary:
+                      </p>
+                      <ul className="text-sm text-blue-700 space-y-1 ml-4">
+                        <li>✓ Total Students: {routeStudents.length}</li>
+                        <li>
+                          ✓ Picked Up:{" "}
+                          {
+                            routeStudents.filter(
+                              (s) => s.pickup_status === "picked_up"
+                            ).length
+                          }
+                        </li>
+                        <li>
+                          ✓ Dropped Off:{" "}
+                          {
+                            routeStudents.filter(
+                              (s) => s.current_status === "dropped_off"
+                            ).length
+                          }
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <label className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <Field
+                      type="checkbox"
+                      name="vehicle_checked"
+                      className="w-4 h-4"
+                    />
+                    <span className="text-gray-700 font-medium">
+                      I confirm the vehicle has been checked and all students
+                      are accounted for
+                    </span>
+                  </label>
+
+                  <div className="flex space-x-3 mt-6">
+                    <button
+                      type="submit"
+                      disabled={!values.vehicle_checked}
+                      className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition"
+                    >
+                      <FiCheckCircle className="inline mr-2" />
+                      End Route
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowEndRoute(false)}
+                      className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+          </Dialog.Description>
+        </Dialog.Panel>
       </Dialog>
     </div>
   );

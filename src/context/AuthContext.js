@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
-// Storage utility using sessionStorage (cleared on browser close - more secure)
+// Storage utility using localStorage
 const STORAGE_KEYS = {
   TOKEN: "radiant-admin-token",
   ROLE: "user-role",
@@ -10,26 +10,26 @@ const STORAGE_KEYS = {
 };
 
 const storage = {
-  setToken: (token) => sessionStorage.setItem(STORAGE_KEYS.TOKEN, token),
-  getToken: () => sessionStorage.getItem(STORAGE_KEYS.TOKEN),
-  removeToken: () => sessionStorage.removeItem(STORAGE_KEYS.TOKEN),
+  setToken: (token) => localStorage.setItem(STORAGE_KEYS.TOKEN, token),
+  getToken: () => localStorage.getItem(STORAGE_KEYS.TOKEN),
+  removeToken: () => localStorage.removeItem(STORAGE_KEYS.TOKEN),
 
-  setRole: (role) => sessionStorage.setItem(STORAGE_KEYS.ROLE, role),
-  getRole: () => sessionStorage.getItem(STORAGE_KEYS.ROLE),
-  removeRole: () => sessionStorage.removeItem(STORAGE_KEYS.ROLE),
+  setRole: (role) => localStorage.setItem(STORAGE_KEYS.ROLE, role),
+  getRole: () => localStorage.getItem(STORAGE_KEYS.ROLE),
+  removeRole: () => localStorage.removeItem(STORAGE_KEYS.ROLE),
 
   setUser: (user) =>
-    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user)),
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user)),
   getUser: () => {
-    const user = sessionStorage.getItem(STORAGE_KEYS.USER);
+    const user = localStorage.getItem(STORAGE_KEYS.USER);
     return user ? JSON.parse(user) : null;
   },
-  removeUser: () => sessionStorage.removeItem(STORAGE_KEYS.USER),
+  removeUser: () => localStorage.removeItem(STORAGE_KEYS.USER),
 
   clearAll: () => {
-    sessionStorage.removeItem(STORAGE_KEYS.TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.ROLE);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.ROLE);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   }
 };
 
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize from sessionStorage on mount
+  // Initialize from localStorage on mount
   useEffect(() => {
     const storedToken = storage.getToken();
     const storedRole = storage.getRole();
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
     setRole(userRole);
     setUser(userData);
 
-    // Store in sessionStorage (cleared on browser close)
+    // Store in localStorage
     storage.setToken(token);
     storage.setRole(userRole);
     storage.setUser(userData);
@@ -71,13 +71,14 @@ export const AuthProvider = ({ children }) => {
     setRole(null);
     setUser(null);
 
-    // Clear sessionStorage
+    // Clear localStorage
     storage.clearAll();
   };
 
   const isAuthenticated = !!token;
   const isSuperAdmin = role === "super_admin";
   const isSchoolAdmin = role === "school_admin";
+  const isDriver = role === "driver";
 
   const value = {
     user,
@@ -87,6 +88,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isSuperAdmin,
     isSchoolAdmin,
+    isDriver,
     login,
     logout
   };

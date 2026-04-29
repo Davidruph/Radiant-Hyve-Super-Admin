@@ -16,7 +16,7 @@ export default function PrivateRoute({ children, requiredRole = null }) {
   }
 
   // Only allow school and super_admin roles
-  const allowedRoles = ["school", "super_admin"];
+  const allowedRoles = ["school", "super_admin", "driver"];
   if (!allowedRoles.includes(role)) {
     return <Navigate to="/login" />;
   }
@@ -27,7 +27,11 @@ export default function PrivateRoute({ children, requiredRole = null }) {
     const fallbackPath =
       role === "super_admin"
         ? "/super_admin/dashboard"
-        : "/school_admin/dashboard";
+        : role === "driver"
+          ? "/driver/dashboard"
+          : role === "school"
+            ? "/school_admin/dashboard"
+            : "/login";
     return <Navigate to={fallbackPath} />;
   }
 

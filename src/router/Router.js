@@ -26,7 +26,11 @@ const Handle = () => {
         const dashboardPath =
           role === "super_admin"
             ? "/super_admin/dashboard"
-            : "/school_admin/dashboard";
+            : role === "driver"
+              ? "/driver/dashboard"
+              : role === "school"
+                ? "/school_admin/dashboard"
+                : "/login";
         navigate(dashboardPath);
       } else {
         navigate("/login");

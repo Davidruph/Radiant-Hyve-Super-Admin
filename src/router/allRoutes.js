@@ -44,6 +44,7 @@ import ParentReminder from "../pages/admin/ParentReminder/ParentReminder";
 
 import TransportationHome from "../pages/admin/Transportation/Index";
 import DriverDashboard from "../pages/driver/Dashboard/Index";
+import RouteExecution from "../pages/driver/Dashboard/RouteExecution";
 
 export const publicRouters = [
   { path: "*", element: <ErrorScreen /> },
@@ -136,5 +137,6 @@ export const privateRouters = [
   { path: "/school_admin/parent_reminder", element: <ParentReminder /> },
   { path: "/school_admin/search", element: <SearchResults /> },
   { path: "/school_admin/transportation", element: <TransportationHome /> },
-  { path: "/driver/dashboard", element: <DriverDashboard /> }
+  { path: "/driver/dashboard", element: <DriverDashboard /> },
+  { path: "/driver/route-execution", element: <RouteExecution /> }
 ];

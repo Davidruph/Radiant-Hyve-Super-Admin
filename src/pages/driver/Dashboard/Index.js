@@ -4,9 +4,9 @@ import RouteExecution from "./RouteExecution";
 
 const DriverDashboard = () => {
   return (
-    <DriverLayout>
-      <RouteExecution />
-    </DriverLayout>
+    // <DriverLayout>
+    <RouteExecution />
+    // </DriverLayout>
   );
 };
 

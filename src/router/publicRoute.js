@@ -9,7 +9,11 @@ export default function PublicRoute({ children }) {
     const dashboardPath =
       role === "super_admin"
         ? "/super_admin/dashboard"
-        : "/school_admin/dashboard";
+        : role === "driver"
+          ? "/driver/dashboard"
+          : role === "school"
+            ? "/school_admin/dashboard"
+            : "/login";
     return <Navigate to={dashboardPath} />;
   }
 

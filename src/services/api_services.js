@@ -111,6 +111,11 @@ import {
   UPDATE_PICKUP_STATUS_API,
   COMPLETE_DROPOFF_API,
   END_ROUTE_API,
+  GET_DRIVER_ROUTES_API,
+  START_DRIVER_ROUTE_API,
+  UPDATE_DRIVER_PICKUP_STATUS_API,
+  COMPLETE_DRIVER_DROPOFF_API,
+  END_DRIVER_ROUTE_API,
   ADD_DROPOFF_RECIPIENT_API,
   GET_TRANSPORT_LOGS_API,
   GET_TRANSPORT_EXCEPTIONS_API,
@@ -861,7 +866,12 @@ export const createRouteApi = (data) => {
 };
 
 export const getRoutesApi = (params) => {
-  return axios.get(require("./api").GET_ROUTES_API, {
+  // Check if user is a driver
+  const userRole = localStorage.getItem("user-role");
+  const apiEndpoint =
+    userRole === "driver" ? GET_DRIVER_ROUTES_API : GET_ROUTES_API;
+
+  return axios.get(apiEndpoint, {
     headers: header,
     params
   });
@@ -872,25 +882,39 @@ export const getRoutesApi = (params) => {
 // =====================================================
 
 export const startRouteApi = (data) => {
-  return axios.post(require("./api").START_ROUTE_API, data, {
+  const userRole = localStorage.getItem("user-role");
+  const apiEndpoint =
+    userRole === "driver" ? START_DRIVER_ROUTE_API : START_ROUTE_API;
+  return axios.post(apiEndpoint, data, {
     headers: header
   });
 };
 
 export const updatePickupStatusApi = (data) => {
-  return axios.put(require("./api").UPDATE_PICKUP_STATUS_API, data, {
+  const userRole = localStorage.getItem("user-role");
+  const apiEndpoint =
+    userRole === "driver"
+      ? UPDATE_DRIVER_PICKUP_STATUS_API
+      : UPDATE_PICKUP_STATUS_API;
+  return axios.put(apiEndpoint, data, {
     headers: header
   });
 };
 
 export const completeDropoffApi = (data) => {
-  return axios.post(require("./api").COMPLETE_DROPOFF_API, data, {
+  const userRole = localStorage.getItem("user-role");
+  const apiEndpoint =
+    userRole === "driver" ? COMPLETE_DRIVER_DROPOFF_API : COMPLETE_DROPOFF_API;
+  return axios.post(apiEndpoint, data, {
     headers: header
   });
 };
 
 export const endRouteApi = (data) => {
-  return axios.post(require("./api").END_ROUTE_API, data, { headers: header });
+  const userRole = localStorage.getItem("user-role");
+  const apiEndpoint =
+    userRole === "driver" ? END_DRIVER_ROUTE_API : END_ROUTE_API;
+  return axios.post(apiEndpoint, data, { headers: header });
 };
 
 // =====================================================

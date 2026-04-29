@@ -136,6 +136,8 @@ const Dashboard = () => {
     );
   }
 
+  console.log(filteredRoutes);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <div className="p-6 bg-white border-b border-gray-200">
@@ -243,7 +245,7 @@ const Dashboard = () => {
                 </h2>
                 <div className="flex items-center space-x-2">
                   <input
-                    type="text"
+                    type="search"
                     placeholder="Search routes..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -381,10 +383,10 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-800">
-                                    {student.student_name}
+                                    {student?.student?.full_name}
                                   </p>
                                   <p className="text-sm text-gray-600">
-                                    {student.student_id}
+                                    {student?.student_id}
                                   </p>
                                 </div>
                               </div>
