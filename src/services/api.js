@@ -179,6 +179,9 @@ export const UPDATE_DRIVER_PICKUP_STATUS_API =
 export const COMPLETE_DRIVER_DROPOFF_API =
   BASE_URL + "/api/driver/route/dropoff/complete";
 export const END_DRIVER_ROUTE_API = BASE_URL + "/api/driver/route/end";
+export const UPDATE_DRIVER_LOCATION_API =
+  BASE_URL + "/api/driver/route/location";
+export const GET_ACTIVE_ROUTE_API = BASE_URL + "/api/driver/route/active";
 
 // Transportation - Drop-off Recipients
 export const ADD_DROPOFF_RECIPIENT_API =

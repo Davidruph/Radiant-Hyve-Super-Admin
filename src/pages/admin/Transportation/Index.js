@@ -4,6 +4,7 @@ import Dashboard from "./Dashboard";
 import Vehicle from "./Vehicle";
 import Driver from "./Driver";
 import Route from "./Route";
+import Logs from "./Logs";
 import { useSearchParams } from "react-router-dom";
 
 const Index = () => {
@@ -21,7 +22,8 @@ const Index = () => {
     "Dashboard",
     "Vehicle Management",
     "Driver Management",
-    "Route Management"
+    "Route Management",
+    "Audit Logs"
   ];
 
   return (
@@ -70,6 +72,15 @@ const Index = () => {
                     Routes
                   </Tab.Button>
                 </Tab>
+
+                <Tab>
+                  <Tab.Button
+                    className="py-2 px-4 whitespace-nowrap"
+                    as="button"
+                  >
+                    Audit Logs
+                  </Tab.Button>
+                </Tab>
               </Tab.List>
             </div>
 
@@ -88,6 +99,10 @@ const Index = () => {
 
               <Tab.Panel className="leading-relaxed">
                 <Route />
+              </Tab.Panel>
+
+              <Tab.Panel className="leading-relaxed">
+                <Logs />
               </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>

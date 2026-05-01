@@ -917,9 +917,57 @@ export const endRouteApi = (data) => {
   return axios.post(apiEndpoint, data, { headers: header });
 };
 
+export const getActiveRouteApi = () => {
+  return axios.get(require("./api").GET_ACTIVE_ROUTE_API, { headers: header });
+};
+
+export const updateDriverLocationApi = (data) => {
+  return axios.post(
+    require("./api").UPDATE_DRIVER_LOCATION_API,
+    data,
+    { headers: header }
+  );
+};
+
+export const getLiveLocationsApi = () => {
+  return axios.get(
+    require("./api").BASE_URL + "/api/transport/live-locations",
+    { headers: header }
+  );
+};
+
 // =====================================================
 // TRANSPORTATION - DROP-OFF RECIPIENTS
 // =====================================================
+
+export const getStudentTransportStatusApi = (studentId) => {
+  return axios.get(
+    `${require("./api").BASE_URL}/api/transport/student/${studentId}/status`,
+    { headers: header }
+  );
+};
+
+export const cancelRouteApi = (routeId, data) => {
+  return axios.put(
+    `${require("./api").BASE_URL}/api/transport/route/${routeId}/cancel`,
+    data,
+    { headers: header }
+  );
+};
+
+export const getDropoffRecipientsApi = (params) => {
+  return axios.get(
+    require("./api").BASE_URL + "/api/transport/recipient/list",
+    { headers: header, params }
+  );
+};
+
+export const removeDropoffRecipientApi = (recipientId) => {
+  return axios.delete(
+    `${require("./api").BASE_URL}/api/transport/recipient/${recipientId}`,
+    { headers: header }
+  );
+};
 
 export const addDropoffRecipientApi = (data) => {
   return axios.post(require("./api").ADD_DROPOFF_RECIPIENT_API, data, {

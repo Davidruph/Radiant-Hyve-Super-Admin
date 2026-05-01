@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import {
   FiPlay,
   FiCheck,
@@ -16,10 +16,12 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
   getRoutesApi,
+  getActiveRouteApi,
   startRouteApi,
   updatePickupStatusApi,
   completeDropoffApi,
-  endRouteApi
+  endRouteApi,
+  updateDriverLocationApi
 } from "../../../services/api_services";
 import moment from "moment";
 
@@ -57,6 +59,7 @@ const RouteExecution = () => {
     gps: false,
     students: false
   });
+  const locationIntervalRef = useRef(null);
 
   const handleChecklistChange = (name) => {
     setChecklist((prev) => ({
@@ -67,11 +70,54 @@ const RouteExecution = () => {
 
   const allChecked = Object.values(checklist).every(Boolean);
 
-  console.log(showRouteStart, selectedRoute);
 
   useEffect(() => {
-    getAssignedRoutes();
+    restoreActiveRouteIfAny();
   }, []);
+
+  // On mount: check if there is an in-progress route and restore it.
+  // This handles the case where a driver refreshes the page mid-route.
+  const restoreActiveRouteIfAny = async () => {
+    try {
+      setLoading(true);
+      const activeRes = await getActiveRouteApi();
+      if (activeRes.data.status === 1 && activeRes.data.data) {
+        const route = activeRes.data.data;
+        setActiveRoute(route);
+        setRouteStudents(route.students || []);
+        return; // don't load scheduled routes if one is already active
+      }
+    } catch {
+      // non-critical — fall through to load scheduled routes
+    }
+    getAssignedRoutes();
+  };
+
+  // Start/stop GPS ping whenever a route becomes active or is ended
+  useEffect(() => {
+    if (activeRoute) {
+      const pingLocation = async () => {
+        const { latitude, longitude } = await getCurrentPosition();
+        if (latitude == null || longitude == null) return;
+        updateDriverLocationApi({
+          route_id: activeRoute.id,
+          latitude,
+          longitude
+        }).catch(() => {});
+      };
+
+      pingLocation(); // immediate first ping
+      locationIntervalRef.current = setInterval(pingLocation, 10000);
+    } else {
+      clearInterval(locationIntervalRef.current);
+      locationIntervalRef.current = null;
+    }
+
+    return () => {
+      clearInterval(locationIntervalRef.current);
+      locationIntervalRef.current = null;
+    };
+  }, [activeRoute]);
 
   const getAssignedRoutes = async () => {
     try {
@@ -96,14 +142,14 @@ const RouteExecution = () => {
 
   const handleStartRoute = async (route) => {
     try {
-      console.log("Starting route:", route);
+
       if (!route || !route.id) {
         toast.error("Invalid route selection");
         return;
       }
 
       const response = await startRouteApi({ route_id: route.id });
-      console.log("Start route response:", response);
+
 
       if (response.data.status === 1) {
         toast.success("Route started successfully! Live tracking activated.");
@@ -119,16 +165,31 @@ const RouteExecution = () => {
     }
   };
 
+  const getCurrentPosition = () =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve({ latitude: null, longitude: null });
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          }),
+        () => resolve({ latitude: null, longitude: null }),
+        { timeout: 5000 }
+      );
+    });
+
   const handlePickupStudent = async (values, { resetForm }) => {
     if (!selectedRoute) return;
 
     try {
+      const { latitude, longitude } = await getCurrentPosition();
       const payload = {
         student_transport_id: selectedRoute.id,
         pickup_status: values.pickup_status,
         skip_reason: values.skip_reason || null,
-        latitude: 0,
-        longitude: 0
+        latitude,
+        longitude
       };
 
       const response = await updatePickupStatusApi(payload);
@@ -143,13 +204,34 @@ const RouteExecution = () => {
 
         toast.success(`Student ${statusText} successfully`);
 
-        setRouteStudents((prev) =>
-          prev.map((s) =>
+        setRouteStudents((prev) => {
+          const updated = prev.map((s) =>
             s.id === selectedRoute.id
-              ? { ...s, pickup_status: values.pickup_status }
+              ? {
+                  ...s,
+                  pickup_status: values.pickup_status,
+                  current_status:
+                    values.pickup_status === "picked_up" ? "in_vehicle" : s.current_status
+                }
               : s
-          )
-        );
+          );
+
+          // Reflect stop progress in activeRoute.stops
+          const stopId = selectedRoute.route_stop_id;
+          if (stopId) {
+            const studentsAtStop = updated.filter((s) => s.route_stop_id === stopId);
+            const pending = studentsAtStop.filter((s) => s.pickup_status === "pending_pickup").length;
+            const newStopStatus =
+              pending === studentsAtStop.length ? "pending" : pending === 0 ? "completed" : "in_progress";
+            setActiveRoute((r) => ({
+              ...r,
+              stops: (r.stops || []).map((stop) =>
+                stop.id === stopId ? { ...stop, status: newStopStatus } : stop
+              )
+            }));
+          }
+          return updated;
+        });
 
         resetForm();
         setShowPickupFlow(false);
@@ -167,12 +249,13 @@ const RouteExecution = () => {
     if (!selectedRoute) return;
 
     try {
+      const { latitude, longitude } = await getCurrentPosition();
       const payload = {
         student_transport_id: selectedRoute.id,
         recipient_type: values.recipient_type,
         recipient_name: values.recipient_name,
-        latitude: 0,
-        longitude: 0
+        latitude,
+        longitude
       };
 
       const response = await completeDropoffApi(payload);
@@ -183,7 +266,7 @@ const RouteExecution = () => {
         setRouteStudents((prev) =>
           prev.map((s) =>
             s.id === selectedRoute.id
-              ? { ...s, current_status: "dropped_off" }
+              ? { ...s, current_status: "dropped_off", dropoff_status: "completed" }
               : s
           )
         );
@@ -256,7 +339,6 @@ const RouteExecution = () => {
     }
   };
 
-  console.log("routeStudents:", routeStudents);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -276,13 +358,17 @@ const RouteExecution = () => {
           </div>
         ) : activeRoute ? (
           <Fragment>
+            {/* Stats */}
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="bg-white p-4 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-600 text-sm">Total Stops</p>
+                    <p className="text-gray-600 text-sm">Stops Done</p>
                     <p className="text-2xl font-bold text-gray-800 mt-1">
-                      {activeRoute.stops?.length || 0}
+                      {activeRoute.stops?.filter((s) => s.status === "completed").length || 0}
+                      <span className="text-base text-gray-400 font-normal">
+                        /{activeRoute.stops?.length || 0}
+                      </span>
                     </p>
                   </div>
                   <FiMapPin className="text-blue-500 text-3xl" />
@@ -306,11 +392,7 @@ const RouteExecution = () => {
                   <div>
                     <p className="text-gray-600 text-sm">Picked Up</p>
                     <p className="text-2xl font-bold text-green-600 mt-1">
-                      {
-                        routeStudents.filter(
-                          (s) => s.pickup_status === "picked_up"
-                        ).length
-                      }
+                      {routeStudents.filter((s) => s.pickup_status === "picked_up").length}
                     </p>
                   </div>
                   <FiCheck className="text-green-500 text-3xl" />
@@ -322,11 +404,7 @@ const RouteExecution = () => {
                   <div>
                     <p className="text-gray-600 text-sm">Pending</p>
                     <p className="text-2xl font-bold text-yellow-600 mt-1">
-                      {
-                        routeStudents.filter(
-                          (s) => s.pickup_status === "pending_pickup"
-                        ).length
-                      }
+                      {routeStudents.filter((s) => s.pickup_status === "pending_pickup").length}
                     </p>
                   </div>
                   <FiClock className="text-yellow-500 text-3xl" />
@@ -334,101 +412,153 @@ const RouteExecution = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-bold text-gray-800">
-                  Students in Route
-                </h2>
-              </div>
+            {/* Students grouped by stop — matches spec: "show only students for that stop" */}
+            <div className="space-y-4">
+              {[...(activeRoute.stops || [])]
+                .sort((a, b) => a.stop_sequence - b.stop_sequence)
+                .map((stop) => {
+                  const stopStudents = routeStudents.filter(
+                    (s) => s.route_stop_id === stop.id
+                  );
+                  const handledCount = stopStudents.filter(
+                    (s) => s.pickup_status !== "pending_pickup"
+                  ).length;
+                  const allHandled = stopStudents.length > 0 && handledCount === stopStudents.length;
+                  const inProgress = handledCount > 0 && !allHandled;
 
-              <div className="divide-y divide-gray-200">
-                {routeStudents.map((student, index) => (
-                  <div
-                    key={student.id}
-                    className="p-4 hover:bg-gray-50 transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold">
-                          {index + 1}
+                  const stopBg = allHandled
+                    ? "bg-green-50 border-green-200"
+                    : inProgress
+                      ? "bg-blue-50 border-blue-200"
+                      : "bg-white border-gray-200";
+
+                  const stopBadge = allHandled
+                    ? "bg-green-100 text-green-700"
+                    : inProgress
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-gray-100 text-gray-600";
+
+                  return (
+                    <div
+                      key={stop.id}
+                      className={`rounded-lg border ${stopBg} overflow-hidden`}
+                    >
+                      {/* Stop header */}
+                      <div className="flex items-center justify-between px-5 py-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white border-2 border-gray-300 text-sm font-bold text-gray-700">
+                            {stop.stop_sequence}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 text-sm">
+                              {stop.stop_name}
+                            </p>
+                            <p className="text-xs text-gray-500 capitalize">
+                              {stop.stop_type} · {stopStudents.length} student{stopStudents.length !== 1 ? "s" : ""}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {student?.student?.full_name}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {student?.student?.id}
-                          </p>
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${stopBadge}`}>
+                          {allHandled ? "✓ Done" : inProgress ? `${handledCount}/${stopStudents.length}` : "Pending"}
+                        </span>
+                      </div>
+
+                      {/* Students at this stop */}
+                      {stopStudents.length === 0 ? (
+                        <p className="px-5 pb-3 text-xs text-gray-400 italic">No students assigned to this stop</p>
+                      ) : (
+                        <div className="divide-y divide-gray-100">
+                          {stopStudents
+                            .sort((a, b) => a.sequence_position - b.sequence_position)
+                            .map((student) => (
+                              <div key={student.id} className="flex items-center justify-between px-5 py-3">
+                                <div className="flex items-center space-x-3 flex-1">
+                                  <p className="font-medium text-gray-800 text-sm">
+                                    {student?.student?.full_name}
+                                  </p>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(
+                                      student.pickup_status
+                                    )} ${getStatusColor(student.pickup_status)}`}
+                                  >
+                                    {student.pickup_status === "pending_pickup"
+                                      ? "Pending"
+                                      : student.pickup_status === "picked_up"
+                                        ? student.current_status === "dropped_off"
+                                          ? "Dropped Off"
+                                          : "In Vehicle"
+                                        : student.pickup_status}
+                                  </span>
+                                </div>
+
+                                <div className="flex space-x-2">
+                                  {student.pickup_status === "pending_pickup" && (
+                                    <button
+                                      onClick={() => { setSelectedRoute(student); setShowPickupFlow(true); }}
+                                      className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition"
+                                    >
+                                      Pickup
+                                    </button>
+                                  )}
+                                  {student.pickup_status === "picked_up" &&
+                                    student.current_status !== "dropped_off" && (
+                                      <button
+                                        onClick={() => { setSelectedRoute(student); setShowDropoffFlow(true); }}
+                                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium transition"
+                                      >
+                                        Dropoff
+                                      </button>
+                                    )}
+                                  {student.current_status === "dropped_off" && (
+                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                      ✓ Done
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                         </div>
-                      </div>
-
-                      <div
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBgColor(
-                          student.pickup_status
-                        )} ${getStatusColor(student.pickup_status)}`}
-                      >
-                        {student.pickup_status === "pending_pickup"
-                          ? "Pending Pickup"
-                          : student.pickup_status === "picked_up"
-                            ? "Picked Up"
-                            : student.pickup_status}
-                      </div>
-
-                      <div className="flex space-x-2 ml-4">
-                        {student.pickup_status === "pending_pickup" && (
-                          <Fragment>
-                            <button
-                              onClick={() => {
-                                setSelectedRoute(student);
-                                setShowPickupFlow(true);
-                              }}
-                              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition"
-                            >
-                              Pickup
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedRoute(student);
-                                setShowDropoffFlow(true);
-                              }}
-                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition"
-                            >
-                              Dropoff
-                            </button>
-                          </Fragment>
-                        )}
-                        {student.pickup_status === "picked_up" && (
-                          <button
-                            onClick={() => {
-                              setSelectedRoute(student);
-                              setShowDropoffFlow(true);
-                            }}
-                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition"
-                          >
-                            Dropoff
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  );
+                })}
             </div>
 
-            <div className="mt-6 flex space-x-3">
+            {routeStudents.filter(
+              (s) =>
+                s.pickup_status === "picked_up" &&
+                s.current_status !== "dropped_off"
+            ).length > 0 && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-300 rounded-lg flex items-start space-x-3">
+                <FiAlertCircle className="text-red-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-red-800 font-medium">
+                  {
+                    routeStudents.filter(
+                      (s) =>
+                        s.pickup_status === "picked_up" &&
+                        s.current_status !== "dropped_off"
+                    ).length
+                  }{" "}
+                  student(s) still in vehicle — complete all dropoffs before
+                  ending the route.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4">
               <button
                 onClick={() => setShowEndRoute(true)}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition"
+                disabled={
+                  routeStudents.filter(
+                    (s) =>
+                      s.pickup_status === "picked_up" &&
+                      s.current_status !== "dropped_off"
+                  ).length > 0
+                }
+                className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
               >
                 <FiCheckCircle className="inline mr-2" />
-                End Route
-              </button>
-              <button
-                onClick={() => setActiveRoute(null)}
-                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
-              >
-                <FiX className="inline mr-2" />
-                Cancel
+                End Route &amp; Confirm Vehicle Check
               </button>
             </div>
           </Fragment>

@@ -1,23 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FiMapPin,
   FiUsers,
   FiTruck,
-  //   FiAlert,
+  FiNavigation,
   FiSearch,
   FiRefreshCw,
   FiCheckCircle,
   FiAlertCircle,
-  FiAlertTriangle
+  FiAlertTriangle,
+  FiClock,
+  FiX
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useDebounce } from "use-debounce";
 import { DotLoader } from "../../../base-component/Loader/Loader";
 import {
   getRoutesApi,
-  getTransportExceptionsApi
+  getTransportExceptionsApi,
+  getLiveLocationsApi,
+  resolveExceptionApi
 } from "../../../services/api_services";
+import { Socket } from "../../../components/Socket/Socket";
 import moment from "moment";
+
+const GOOGLE_MAPS_KEY = "AIzaSyBBLcXrmcY2pdzrI4uiyhFdOefMDZhxVc4";
 
 const Dashboard = () => {
   const [routes, setRoutes] = useState([]);
@@ -27,10 +34,138 @@ const Dashboard = () => {
   const [debouncedSearch] = useDebounce(search, 500);
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedRoute, setSelectedRoute] = useState(null);
+  const [liveLocations, setLiveLocations] = useState({});
+  const [liveAlerts, setLiveAlerts] = useState([]);
+  const [resolveModal, setResolveModal] = useState(null); // { exception, action }
+  const [resolutionNotes, setResolutionNotes] = useState("");
+  const [resolving, setResolving] = useState(false);
+  const userData = JSON.parse(localStorage.getItem("user-data") || "{}");
+  const socketReadyRef = useRef(false);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchLiveLocations();
   }, []);
+
+  // Subscribe to live location updates via socket
+  useEffect(() => {
+    const handleLocationUpdate = (data) => {
+      setLiveLocations((prev) => ({
+        ...prev,
+        [data.route_id]: data
+      }));
+    };
+
+    if (!Socket.connected) {
+      Socket.connect();
+      Socket.once("connect", () => {
+        if (!socketReadyRef.current) {
+          socketReadyRef.current = true;
+          Socket.emit("socket_register", {
+            user_id: userData?.id,
+            token_id: localStorage.getItem("token-id")
+          });
+        }
+      });
+    }
+
+    const handleStudentUpdate = (data) => {
+      setRoutes((prev) =>
+        prev.map((route) => {
+          if (route.id !== data.route_id) return route;
+          return {
+            ...route,
+            students: (route.students || []).map((s) => {
+              if (s.id !== data.student_transport_id) return s;
+              return {
+                ...s,
+                pickup_status: data.pickup_status ?? s.pickup_status,
+                current_status: data.current_status ?? s.current_status,
+                dropoff_status: data.dropoff_status ?? s.dropoff_status
+              };
+            })
+          };
+        })
+      );
+    };
+
+    const handleException = (data) => {
+      setLiveAlerts((prev) => {
+        // Avoid duplicates for the same exception_id
+        if (prev.some((a) => a.exception_id === data.exception_id)) return prev;
+        return [data, ...prev].slice(0, 10);
+      });
+      // Also refresh exceptions list so it reflects in the panel below
+      getTransportExceptionsApi({ page: 1 })
+        .then((res) => {
+          if (res.data.status === 1) setExceptions(res.data.data);
+        })
+        .catch(() => {});
+    };
+
+    Socket.on("transport:location_update", handleLocationUpdate);
+    Socket.on("transport:exception", handleException);
+    Socket.on("transport:student_update", handleStudentUpdate);
+
+    return () => {
+      Socket.off("transport:location_update", handleLocationUpdate);
+      Socket.off("transport:exception", handleException);
+      Socket.off("transport:student_update", handleStudentUpdate);
+    };
+  }, [userData?.id]);
+
+  const fetchLiveLocations = async () => {
+    try {
+      const res = await getLiveLocationsApi();
+      if (res.data.status === 1) {
+        const map = {};
+        res.data.data.forEach((loc) => {
+          map[loc.route_id] = loc;
+        });
+        setLiveLocations(map);
+      }
+    } catch {
+      // Non-critical — socket will fill the data
+    }
+  };
+
+  const handleResolveException = async () => {
+    if (!resolveModal) return;
+    setResolving(true);
+    try {
+      const res = await resolveExceptionApi(resolveModal.exception.id, {
+        action: resolveModal.action,
+        resolution_notes: resolutionNotes || null
+      });
+      if (res.data.status === 1) {
+        toast.success(
+          resolveModal.action === "acknowledged"
+            ? "Exception acknowledged"
+            : "Exception resolved"
+        );
+        setExceptions((prev) =>
+          prev.map((e) =>
+            e.id === resolveModal.exception.id
+              ? { ...e, status: resolveModal.action }
+              : e
+          )
+        );
+        setLiveAlerts((prev) =>
+          prev.filter(
+            (a) => a.exception_id !== resolveModal.exception.id
+          )
+        );
+        setResolveModal(null);
+        setResolutionNotes("");
+      } else {
+        toast.error(res.data.message || "Failed to update exception");
+      }
+    } catch {
+      toast.error("Failed to update exception");
+    } finally {
+      setResolving(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -48,6 +183,8 @@ const Dashboard = () => {
       if (exceptionsRes.data.status === 1) {
         setExceptions(exceptionsRes.data.data);
       }
+
+      await fetchLiveLocations();
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Failed to fetch dashboard data");
@@ -136,7 +273,6 @@ const Dashboard = () => {
     );
   }
 
-  console.log(filteredRoutes);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -163,6 +299,59 @@ const Dashboard = () => {
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
+
+          {/* Real-time exception alerts */}
+          {liveAlerts.length > 0 && (
+            <div className="mb-6 space-y-2">
+              {liveAlerts.map((alert, idx) => (
+                <div
+                  key={alert.exception_id || idx}
+                  className={`flex items-start justify-between p-4 rounded-lg border ${
+                    alert.severity === "critical"
+                      ? "bg-red-50 border-red-400"
+                      : alert.severity === "high"
+                        ? "bg-orange-50 border-orange-400"
+                        : "bg-yellow-50 border-yellow-400"
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <FiAlertCircle
+                      className={`mt-0.5 flex-shrink-0 ${
+                        alert.severity === "critical"
+                          ? "text-red-600"
+                          : alert.severity === "high"
+                            ? "text-orange-600"
+                            : "text-yellow-600"
+                      }`}
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {alert.severity?.toUpperCase()} —{" "}
+                        {alert.exception_type?.replace(/_/g, " ")}
+                      </p>
+                      <p className="text-sm text-gray-700 mt-0.5">
+                        {alert.description}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Route: {alert.route_name}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setLiveAlerts((prev) =>
+                        prev.filter((a) => a.exception_id !== alert.exception_id)
+                      )
+                    }
+                    className="ml-4 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                  >
+                    <FiAlertTriangle className="text-sm" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
@@ -236,6 +425,93 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Live Tracking Panel — only shown when routes are active */}
+          {Object.keys(liveLocations).length > 0 && (
+            <div className="mb-8 bg-white rounded-lg border border-gray-200">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                  <h2 className="text-lg font-bold text-gray-800">
+                    Live Tracking
+                  </h2>
+                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                    {Object.keys(liveLocations).length} active
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">Updates every 10 seconds</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                {Object.values(liveLocations).map((loc) => {
+                  const lat = parseFloat(loc.latitude);
+                  const lng = parseFloat(loc.longitude);
+                  const mapSrc = `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_KEY}&q=${lat},${lng}&zoom=15`;
+                  const matchedRoute = routes.find(
+                    (r) => r.id === loc.route_id
+                  );
+
+                  return (
+                    <div
+                      key={loc.route_id}
+                      className="border border-gray-200 rounded-lg overflow-hidden"
+                    >
+                      <div className="p-4 bg-gray-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              {loc.route_name ||
+                                matchedRoute?.route_name ||
+                                "Active Route"}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-0.5">
+                              Driver:{" "}
+                              {matchedRoute?.driver?.full_name || "—"} •{" "}
+                              {matchedRoute?.vehicle?.vehicle_name || "—"}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                              <FiNavigation className="text-xs" />
+                              <span>Live</span>
+                            </div>
+                            <div className="flex items-center space-x-1 text-gray-400 text-xs mt-1">
+                              <FiClock className="text-xs" />
+                              <span>
+                                {moment(loc.last_updated).fromNow()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <iframe
+                        key={`${lat},${lng}`}
+                        title={`map-${loc.route_id}`}
+                        src={mapSrc}
+                        width="100%"
+                        height="260"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+
+                      <div className="p-3 bg-gray-50 flex items-center space-x-4 text-xs text-gray-500">
+                        <FiMapPin className="text-gray-400" />
+                        <span>
+                          {lat.toFixed(6)}, {lng.toFixed(6)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="bg-white rounded-lg border border-gray-200">
             <div className="p-6 border-b border-gray-200">
@@ -367,48 +643,74 @@ const Dashboard = () => {
 
                     {selectedRoute?.id === route.id && (
                       <div className="mt-6 pt-6 border-t border-gray-200">
-                        <h4 className="font-bold text-gray-800 mb-3">
-                          Route Details
-                        </h4>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-gray-800">
+                            Live Student Status
+                          </h4>
+                          {route.status === "active" && (
+                            <span className="flex items-center space-x-1.5 text-xs text-green-600 font-medium">
+                              <span className="flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                              </span>
+                              <span>Live updates on</span>
+                            </span>
+                          )}
+                        </div>
 
-                        <div className="space-y-3">
-                          {route.students?.map((student, idx) => (
-                            <div
-                              key={student.id}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-sm font-bold">
-                                  {idx + 1}
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-800">
-                                    {student?.student?.full_name}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    {student?.student_id}
-                                  </p>
-                                </div>
-                              </div>
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  student.pickup_status === "picked_up"
-                                    ? "bg-green-100 text-green-800"
-                                    : student.pickup_status === "pending_pickup"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : student.pickup_status === "absent"
-                                        ? "bg-red-100 text-red-800"
-                                        : "bg-orange-100 text-orange-800"
-                                }`}
-                              >
-                                {student.pickup_status === "pending_pickup"
-                                  ? "Pending"
-                                  : student.pickup_status === "picked_up"
-                                    ? "Picked Up"
-                                    : student.pickup_status}
+                        {/* Progress bar */}
+                        {route.students?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                              <span>
+                                {route.students.filter((s) => s.pickup_status !== "pending_pickup").length}
+                                /{route.students.length} students handled
+                              </span>
+                              <span>
+                                {route.students.filter((s) => s.current_status === "dropped_off").length} dropped off
                               </span>
                             </div>
-                          ))}
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.round(
+                                    (route.students.filter((s) => s.pickup_status !== "pending_pickup").length /
+                                      route.students.length) * 100
+                                  )}%`
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {route.students?.map((student) => {
+                            const status =
+                              student.current_status === "dropped_off"
+                                ? { label: "Dropped Off", cls: "bg-blue-100 text-blue-800" }
+                                : student.pickup_status === "picked_up"
+                                  ? { label: "In Vehicle", cls: "bg-green-100 text-green-800" }
+                                  : student.pickup_status === "absent"
+                                    ? { label: "Absent", cls: "bg-red-100 text-red-800" }
+                                    : student.pickup_status === "skipped"
+                                      ? { label: "Skipped", cls: "bg-orange-100 text-orange-800" }
+                                      : { label: "Pending", cls: "bg-yellow-100 text-yellow-800" };
+
+                            return (
+                              <div
+                                key={student.id}
+                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                              >
+                                <p className="font-medium text-gray-800 text-sm">
+                                  {student?.student?.full_name}
+                                </p>
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${status.cls}`}>
+                                  {status.label}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -425,10 +727,13 @@ const Dashboard = () => {
 
           {exceptions.length > 0 && (
             <div className="mt-8 bg-white rounded-lg border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-800">
                   Exceptions & Issues
                 </h2>
+                <span className="text-sm text-gray-500">
+                  {exceptions.filter((e) => e.status === "open").length} open
+                </span>
               </div>
 
               <div className="divide-y divide-gray-200">
@@ -438,24 +743,32 @@ const Dashboard = () => {
                     className="p-6 hover:bg-gray-50 transition"
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-bold text-gray-800">
-                          {exception.exception_type?.replace(/_/g, " ")}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Route: {exception.route_name}
+                      <div className="flex-1 mr-4">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-bold text-gray-800 capitalize">
+                            {exception.exception_type?.replace(/_/g, " ")}
+                          </h3>
+                          {exception.student?.full_name && (
+                            <span className="text-xs text-gray-500">
+                              — {exception.student.full_name}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          Route: {exception.route?.route_name || "—"}
                         </p>
                       </div>
-                      <div className="flex space-x-2">
+
+                      <div className="flex items-center space-x-2 flex-shrink-0">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium border ${getExceptionSeverityColor(
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getExceptionSeverityColor(
                             exception.severity
                           )}`}
                         >
                           {exception.severity}
                         </span>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                             exception.status === "open"
                               ? "bg-red-100 text-red-800"
                               : exception.status === "acknowledged"
@@ -472,13 +785,135 @@ const Dashboard = () => {
                       {exception.description}
                     </p>
 
-                    <p className="text-xs text-gray-500">
-                      {moment(exception.created_at).format(
-                        "MMM DD, YYYY hh:mm A"
+                    {exception.resolution_notes && (
+                      <p className="text-xs text-gray-500 bg-gray-50 rounded p-2 mb-3">
+                        Resolution: {exception.resolution_notes}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-400">
+                        {moment(exception.created_at).format(
+                          "MMM DD, YYYY hh:mm A"
+                        )}
+                        {exception.resolvedBy && (
+                          <span>
+                            {" "}
+                            · Resolved by {exception.resolvedBy.full_name}
+                          </span>
+                        )}
+                      </p>
+
+                      {exception.status !== "resolved" && (
+                        <div className="flex space-x-2">
+                          {exception.status === "open" && (
+                            <button
+                              onClick={() =>
+                                setResolveModal({
+                                  exception,
+                                  action: "acknowledged"
+                                })
+                              }
+                              className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 rounded-lg transition"
+                            >
+                              Acknowledge
+                            </button>
+                          )}
+                          <button
+                            onClick={() =>
+                              setResolveModal({
+                                exception,
+                                action: "resolved"
+                              })
+                            }
+                            className="px-3 py-1 text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 rounded-lg transition"
+                          >
+                            Resolve
+                          </button>
+                        </div>
                       )}
-                    </p>
+                    </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Exception resolution modal */}
+          {resolveModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <h3 className="font-bold text-gray-900 text-lg capitalize">
+                    {resolveModal.action} Exception
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setResolveModal(null);
+                      setResolutionNotes("");
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <FiX />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="font-medium text-gray-800 capitalize">
+                      {resolveModal.exception.exception_type?.replace(
+                        /_/g,
+                        " "
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {resolveModal.exception.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Resolution Notes{" "}
+                      {resolveModal.action === "resolved" && (
+                        <span className="text-red-500">*</span>
+                      )}
+                    </label>
+                    <textarea
+                      value={resolutionNotes}
+                      onChange={(e) => setResolutionNotes(e.target.value)}
+                      placeholder="Describe how this was resolved or what action was taken..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 p-6 pt-0">
+                  <button
+                    onClick={handleResolveException}
+                    disabled={
+                      resolving ||
+                      (resolveModal.action === "resolved" &&
+                        !resolutionNotes.trim())
+                    }
+                    className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg font-medium text-sm transition"
+                  >
+                    {resolving
+                      ? "Saving..."
+                      : resolveModal.action === "acknowledged"
+                        ? "Acknowledge"
+                        : "Mark Resolved"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setResolveModal(null);
+                      setResolutionNotes("");
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )}

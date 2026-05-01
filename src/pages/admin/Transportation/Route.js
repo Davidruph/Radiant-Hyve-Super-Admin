@@ -20,7 +20,11 @@ import {
   getRoutesApi,
   getVehiclesApi,
   getAllStudentListApi,
-  getShiftApi
+  getShiftApi,
+  getDropoffRecipientsApi,
+  addDropoffRecipientApi,
+  removeDropoffRecipientApi,
+  cancelRouteApi
 } from "../../../services/api_services";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +67,19 @@ const Route = () => {
   const [createRouteModal, setCreateRouteModal] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [routeDetailsModal, setRouteDetailsModal] = useState(false);
+  const [recipients, setRecipients] = useState({}); // { student_id: [...] }
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [cancelModal, setCancelModal] = useState(null); // route object
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [addRecipientFor, setAddRecipientFor] = useState(null); // student_id
+  const [newRecipient, setNewRecipient] = useState({
+    recipient_type: "parent",
+    recipient_name: "",
+    recipient_phone: "",
+    relationship_to_student: "",
+    is_primary: false
+  });
 
   useEffect(() => {
     getRoutesList();
@@ -115,8 +132,7 @@ const Route = () => {
 
       if (response.data.status === 1) {
         setStudents(response.data.data);
-        console.log("Fetched students:", response.data.data);
-      }
+        }
     } catch (error) {
       console.error("Error fetching students:", error);
     }
@@ -170,9 +186,98 @@ const Route = () => {
     }
   };
 
-  const handleViewDetails = (route) => {
+  const handleViewDetails = async (route) => {
     setSelectedRoute(route);
     setRouteDetailsModal(true);
+    if (route.students?.length > 0) {
+      setRecipientsLoading(true);
+      try {
+        const res = await getDropoffRecipientsApi();
+        if (res.data.status === 1) {
+          const map = {};
+          res.data.data.forEach((r) => {
+            if (!map[r.student_id]) map[r.student_id] = [];
+            map[r.student_id].push(r);
+          });
+          setRecipients(map);
+        }
+      } catch {
+        // non-critical
+      } finally {
+        setRecipientsLoading(false);
+      }
+    }
+  };
+
+  const handleAddRecipient = async (studentId) => {
+    if (!newRecipient.recipient_name.trim()) {
+      toast.error("Recipient name is required");
+      return;
+    }
+    try {
+      const res = await addDropoffRecipientApi({
+        student_id: studentId,
+        ...newRecipient
+      });
+      if (res.data.status === 1) {
+        toast.success("Recipient added");
+        setRecipients((prev) => ({
+          ...prev,
+          [studentId]: [...(prev[studentId] || []), res.data.data]
+        }));
+        setAddRecipientFor(null);
+        setNewRecipient({
+          recipient_type: "parent",
+          recipient_name: "",
+          recipient_phone: "",
+          relationship_to_student: "",
+          is_primary: false
+        });
+      } else {
+        toast.error(res.data.message || "Failed to add recipient");
+      }
+    } catch {
+      toast.error("Failed to add recipient");
+    }
+  };
+
+  const handleCancelRoute = async () => {
+    if (!cancelModal) return;
+    setCancelling(true);
+    try {
+      const res = await cancelRouteApi(cancelModal.id, { reason: cancelReason || null });
+      if (res.data.status === 1) {
+        toast.success("Route cancelled");
+        setRoutes((prev) =>
+          prev.map((r) =>
+            r.id === cancelModal.id ? { ...r, status: "cancelled" } : r
+          )
+        );
+        setCancelModal(null);
+        setCancelReason("");
+      } else {
+        toast.error(res.data.message || "Failed to cancel route");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to cancel route");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleRemoveRecipient = async (recipientId, studentId) => {
+    try {
+      const res = await removeDropoffRecipientApi(recipientId);
+      if (res.data.status === 1) {
+        toast.success("Recipient removed");
+        setRecipients((prev) => ({
+          ...prev,
+          [studentId]: (prev[studentId] || []).filter((r) => r.id !== recipientId)
+        }));
+      }
+    } catch {
+      toast.error("Failed to remove recipient");
+    }
   };
 
   const getDriverName = (driverId) => {
@@ -188,7 +293,6 @@ const Route = () => {
   const getStudentName = (studentId) => {
     const student = students.find((s) => s.id == studentId);
     // console.log("Finding student name for ID:", studentId, "Found:", student);
-    console.log(selectedRoute);
 
     return student ? `${student.full_name}` : "Unknown";
   };
@@ -316,9 +420,19 @@ const Route = () => {
                   >
                     View Details
                   </button>
-                  <button className="flex-1 text-sm bg-red-50 text-red-600 hover:bg-red-100 py-1 rounded transition font-medium">
-                    Delete
-                  </button>
+                  {route.status === "scheduled" && (
+                    <button
+                      onClick={() => setCancelModal(route)}
+                      className="flex-1 text-sm bg-red-50 text-red-600 hover:bg-red-100 py-1 rounded transition font-medium"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  {route.status === "cancelled" && (
+                    <span className="flex-1 text-center text-xs text-gray-400 py-1">
+                      Cancelled
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -481,11 +595,23 @@ const Route = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Start Time *
                       </label>
-                      <Field
-                        name="scheduled_start_time"
-                        type="datetime-local"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                      />
+                      <Field name="scheduled_start_time">
+                        {({ field }) => (
+                          <>
+                            <input
+                              {...field}
+                              type="datetime-local"
+                              min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                            />
+                            {field.value && new Date(field.value) < new Date() && (
+                              <p className="text-red-500 text-xs mt-1">
+                                Start time must be in the future
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </Field>
                       <ErrorMessage
                         name="scheduled_start_time"
                         component="span"
@@ -605,6 +731,24 @@ const Route = () => {
                       {values.student_assignments.length} students
                     </span>
                   </div>
+
+                  {/* Capacity warning */}
+                  {values.vehicle_id && (() => {
+                    const v = vehicles.find((v) => v.id === values.vehicle_id);
+                    const over = v && values.student_assignments.length > v.capacity;
+                    const near = v && !over && values.student_assignments.length === v.capacity;
+                    if (over) return (
+                      <div className="mb-3 p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-700">
+                        ⚠ Over capacity — {values.student_assignments.length} students assigned but {v.vehicle_name} holds {v.capacity}. Remove {values.student_assignments.length - v.capacity} student(s).
+                      </div>
+                    );
+                    if (near) return (
+                      <div className="mb-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-700">
+                        Vehicle at full capacity ({v.capacity}/{v.capacity}).
+                      </div>
+                    );
+                    return null;
+                  })()}
 
                   <FieldArray name="student_assignments">
                     {({ push, remove }) => (
@@ -791,33 +935,167 @@ const Route = () => {
                 </div>
               )}
 
-              {/* Students */}
+              {/* Students + Authorized Recipients */}
               {selectedRoute.students && selectedRoute.students.length > 0 && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">
-                    Assigned Students ({selectedRoute.students.length})
+                    Students &amp; Authorized Recipients ({selectedRoute.students.length})
                   </h4>
-                  <div className="space-y-2">
-                    {selectedRoute.students.map((student, idx) => (
-                      <div
-                        key={student.id}
-                        className="bg-white p-3 rounded border border-gray-200 text-sm"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {getStudentName(student.student_id)}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              Position: #{student.sequence_position}
-                            </p>
-                            <p className="text-gray-500 text-xs mt-1 capitalize">
-                              Status: {student.pickup_status}
-                            </p>
+                  {recipientsLoading && (
+                    <p className="text-xs text-gray-500 mb-2">Loading recipients...</p>
+                  )}
+                  <div className="space-y-3">
+                    {selectedRoute.students.map((student) => {
+                      const studentName = getStudentName(student.student_id);
+                      const studentRecipients = recipients[student.student_id] || [];
+                      const isAddingHere = addRecipientFor === student.student_id;
+
+                      return (
+                        <div
+                          key={student.id}
+                          className="bg-white rounded-lg border border-gray-200 overflow-hidden"
+                        >
+                          {/* Student header */}
+                          <div className="flex items-center justify-between p-3 border-b border-gray-100">
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">
+                                {studentName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Position #{student.sequence_position} ·{" "}
+                                <span className="capitalize">{student.pickup_status?.replace(/_/g, " ")}</span>
+                              </p>
+                            </div>
+                            <button
+                              onClick={() =>
+                                setAddRecipientFor(
+                                  isAddingHere ? null : student.student_id
+                                )
+                              }
+                              className="text-xs px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition"
+                            >
+                              {isAddingHere ? "Cancel" : "+ Add Recipient"}
+                            </button>
                           </div>
+
+                          {/* Recipients list */}
+                          {studentRecipients.length > 0 ? (
+                            <div className="divide-y divide-gray-50">
+                              {studentRecipients.map((r) => (
+                                <div
+                                  key={r.id}
+                                  className="flex items-center justify-between px-3 py-2"
+                                >
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-800">
+                                      {r.recipient_name}
+                                      {r.is_primary && (
+                                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                                          Primary
+                                        </span>
+                                      )}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {r.recipient_type?.replace(/_/g, " ")}
+                                      {r.relationship_to_student && ` · ${r.relationship_to_student}`}
+                                      {r.recipient_phone && ` · ${r.recipient_phone}`}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveRecipient(r.id, student.student_id)
+                                    }
+                                    className="text-red-400 hover:text-red-600 ml-2"
+                                  >
+                                    <FiX size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="px-3 py-2 text-xs text-gray-400 italic">
+                              No authorized recipients yet
+                            </p>
+                          )}
+
+                          {/* Inline add form */}
+                          {isAddingHere && (
+                            <div className="p-3 bg-blue-50 border-t border-blue-100 space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <select
+                                  value={newRecipient.recipient_type}
+                                  onChange={(e) =>
+                                    setNewRecipient((p) => ({
+                                      ...p,
+                                      recipient_type: e.target.value
+                                    }))
+                                  }
+                                  className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none"
+                                >
+                                  <option value="parent">Parent</option>
+                                  <option value="authorized_person">Authorized Person</option>
+                                </select>
+                                <input
+                                  type="text"
+                                  placeholder="Recipient name *"
+                                  value={newRecipient.recipient_name}
+                                  onChange={(e) =>
+                                    setNewRecipient((p) => ({
+                                      ...p,
+                                      recipient_name: e.target.value
+                                    }))
+                                  }
+                                  className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Phone (optional)"
+                                  value={newRecipient.recipient_phone}
+                                  onChange={(e) =>
+                                    setNewRecipient((p) => ({
+                                      ...p,
+                                      recipient_phone: e.target.value
+                                    }))
+                                  }
+                                  className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Relationship (e.g. Mother)"
+                                  value={newRecipient.relationship_to_student}
+                                  onChange={(e) =>
+                                    setNewRecipient((p) => ({
+                                      ...p,
+                                      relationship_to_student: e.target.value
+                                    }))
+                                  }
+                                  className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none"
+                                />
+                              </div>
+                              <label className="flex items-center space-x-2 text-xs text-gray-700">
+                                <input
+                                  type="checkbox"
+                                  checked={newRecipient.is_primary}
+                                  onChange={(e) =>
+                                    setNewRecipient((p) => ({
+                                      ...p,
+                                      is_primary: e.target.checked
+                                    }))
+                                  }
+                                />
+                                <span>Set as primary recipient</span>
+                              </label>
+                              <button
+                                onClick={() => handleAddRecipient(student.student_id)}
+                                className="w-full text-xs py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded transition"
+                              >
+                                Save Recipient
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -838,6 +1116,51 @@ const Route = () => {
           )}
         </Dialog.Panel>
       </Dialog>
+
+      {/* Route cancellation confirmation modal */}
+      {cancelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="font-bold text-gray-900 text-lg">Cancel Route</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Are you sure you want to cancel{" "}
+                <span className="font-medium">{cancelModal.route_name}</span>?
+                This cannot be undone.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason (optional)
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="e.g. Driver unavailable, vehicle breakdown..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCancelRoute}
+                  disabled={cancelling}
+                  className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white rounded-lg font-medium text-sm transition"
+                >
+                  {cancelling ? "Cancelling..." : "Yes, Cancel Route"}
+                </button>
+                <button
+                  onClick={() => { setCancelModal(null); setCancelReason(""); }}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition"
+                >
+                  Keep Route
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Fragment>
   );
 };
