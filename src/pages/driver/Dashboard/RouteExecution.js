@@ -60,6 +60,9 @@ const RouteExecution = () => {
     students: false
   });
   const locationIntervalRef = useRef(null);
+  const watchIdRef = useRef(null);          // watchPosition ID
+  const lastPositionRef = useRef(null);     // most recent valid GPS fix
+  const [gpsStatus, setGpsStatus] = useState("waiting"); // "tracking" | "waiting" | "denied"
 
   const handleChecklistChange = (name) => {
     setChecklist((prev) => ({
@@ -69,7 +72,6 @@ const RouteExecution = () => {
   };
 
   const allChecked = Object.values(checklist).every(Boolean);
-
 
   useEffect(() => {
     restoreActiveRouteIfAny();
@@ -93,27 +95,73 @@ const RouteExecution = () => {
     getAssignedRoutes();
   };
 
-  // Start/stop GPS ping whenever a route becomes active or is ended
+  // GPS tracking — uses watchPosition so the browser keeps the GPS session
+  // alive and handles kCLErrorLocationUnknown / temporary failures internally.
+  // A separate interval sends the latest fix to the backend every 10 s so we
+  // don't flood the server on every GPS update.
   useEffect(() => {
-    if (activeRoute) {
-      const pingLocation = async () => {
-        const { latitude, longitude } = await getCurrentPosition();
-        if (latitude == null || longitude == null) return;
-        updateDriverLocationApi({
-          route_id: activeRoute.id,
-          latitude,
-          longitude
-        }).catch(() => {});
-      };
-
-      pingLocation(); // immediate first ping
-      locationIntervalRef.current = setInterval(pingLocation, 10000);
-    } else {
+    if (!activeRoute) {
+      // Route ended or not started — tear everything down
+      if (watchIdRef.current != null) {
+        navigator.geolocation?.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
       clearInterval(locationIntervalRef.current);
       locationIntervalRef.current = null;
+      lastPositionRef.current = null;
+      setGpsStatus("waiting");
+      return;
     }
 
+    if (!navigator.geolocation) return;
+
+    // Start watching — browser handles retries on kCLErrorLocationUnknown
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        lastPositionRef.current = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        };
+        setGpsStatus("tracking");
+      },
+      (err) => {
+        if (err.code === 1) {
+          // PERMISSION_DENIED — stop watching, nothing we can do
+          navigator.geolocation.clearWatch(watchIdRef.current);
+          watchIdRef.current = null;
+          setGpsStatus("denied");
+        } else {
+          // POSITION_UNAVAILABLE (2) / TIMEOUT (3) — temporary, watchPosition
+          // retries automatically; kCLErrorLocationUnknown maps to these on iOS
+          setGpsStatus("waiting");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 15000,   // accept a fix up to 15 s old
+        timeout: 30000       // give iOS time to acquire a signal
+      }
+    );
+
+    // Send the latest cached fix to the backend every 10 s
+    const sendLocation = () => {
+      const pos = lastPositionRef.current;
+      if (!pos) return;
+      updateDriverLocationApi({
+        route_id: activeRoute.id,
+        latitude: pos.latitude,
+        longitude: pos.longitude
+      }).catch(() => {});
+    };
+
+    sendLocation(); // send immediately if we already have a fix
+    locationIntervalRef.current = setInterval(sendLocation, 10000);
+
     return () => {
+      if (watchIdRef.current != null) {
+        navigator.geolocation?.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
       clearInterval(locationIntervalRef.current);
       locationIntervalRef.current = null;
     };
@@ -142,14 +190,12 @@ const RouteExecution = () => {
 
   const handleStartRoute = async (route) => {
     try {
-
       if (!route || !route.id) {
         toast.error("Invalid route selection");
         return;
       }
 
       const response = await startRouteApi({ route_id: route.id });
-
 
       if (response.data.status === 1) {
         toast.success("Route started successfully! Live tracking activated.");
@@ -165,19 +211,30 @@ const RouteExecution = () => {
     }
   };
 
-  const getCurrentPosition = () =>
-    new Promise((resolve) => {
-      if (!navigator.geolocation) return resolve({ latitude: null, longitude: null });
+  // For pickup/dropoff actions: return the latest cached fix from watchPosition
+  // immediately. Only does a fresh one-shot call if nothing is cached yet
+  // (e.g. driver just loaded the page and GPS hasn't fired once yet).
+  const getCurrentPosition = () => {
+    if (lastPositionRef.current) {
+      return Promise.resolve(lastPositionRef.current);
+    }
+    return new Promise((resolve) => {
+      if (!navigator.geolocation)
+        return resolve({ latitude: null, longitude: null });
       navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          resolve({
+        (pos) => {
+          const fix = {
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude
-          }),
+          };
+          lastPositionRef.current = fix;
+          resolve(fix);
+        },
         () => resolve({ latitude: null, longitude: null }),
-        { timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
       );
     });
+  };
 
   const handlePickupStudent = async (values, { resetForm }) => {
     if (!selectedRoute) return;
@@ -211,7 +268,9 @@ const RouteExecution = () => {
                   ...s,
                   pickup_status: values.pickup_status,
                   current_status:
-                    values.pickup_status === "picked_up" ? "in_vehicle" : s.current_status
+                    values.pickup_status === "picked_up"
+                      ? "in_vehicle"
+                      : s.current_status
                 }
               : s
           );
@@ -219,10 +278,18 @@ const RouteExecution = () => {
           // Reflect stop progress in activeRoute.stops
           const stopId = selectedRoute.route_stop_id;
           if (stopId) {
-            const studentsAtStop = updated.filter((s) => s.route_stop_id === stopId);
-            const pending = studentsAtStop.filter((s) => s.pickup_status === "pending_pickup").length;
+            const studentsAtStop = updated.filter(
+              (s) => s.route_stop_id === stopId
+            );
+            const pending = studentsAtStop.filter(
+              (s) => s.pickup_status === "pending_pickup"
+            ).length;
             const newStopStatus =
-              pending === studentsAtStop.length ? "pending" : pending === 0 ? "completed" : "in_progress";
+              pending === studentsAtStop.length
+                ? "pending"
+                : pending === 0
+                  ? "completed"
+                  : "in_progress";
             setActiveRoute((r) => ({
               ...r,
               stops: (r.stops || []).map((stop) =>
@@ -266,7 +333,11 @@ const RouteExecution = () => {
         setRouteStudents((prev) =>
           prev.map((s) =>
             s.id === selectedRoute.id
-              ? { ...s, current_status: "dropped_off", dropoff_status: "completed" }
+              ? {
+                  ...s,
+                  current_status: "dropped_off",
+                  dropoff_status: "completed"
+                }
               : s
           )
         );
@@ -339,16 +410,45 @@ const RouteExecution = () => {
     }
   };
 
-
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <div className="p-6 bg-white border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">Route Execution</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          {activeRoute
-            ? `Active Route: ${activeRoute.route_name}`
-            : "Select a route to start"}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Route Execution</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              {activeRoute
+                ? `Active Route: ${activeRoute.route_name}`
+                : "Select a route to start"}
+            </p>
+          </div>
+
+          {activeRoute && (
+            <div className="flex items-center space-x-2">
+              {gpsStatus === "tracking" && (
+                <span className="flex items-center space-x-1.5 text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                  <span>GPS Active</span>
+                </span>
+              )}
+              {gpsStatus === "waiting" && (
+                <span className="flex items-center space-x-1.5 text-xs font-medium text-yellow-700 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
+                  <FiClock className="text-yellow-500" />
+                  <span>Getting GPS…</span>
+                </span>
+              )}
+              {gpsStatus === "denied" && (
+                <span className="flex items-center space-x-1.5 text-xs font-medium text-red-700 bg-red-50 px-3 py-1.5 rounded-full border border-red-200">
+                  <FiAlertCircle className="text-red-500" />
+                  <span>GPS denied — enable in browser settings</span>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -359,13 +459,15 @@ const RouteExecution = () => {
         ) : activeRoute ? (
           <Fragment>
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="flex flex-wrap gap-4 mb-6 w-full">
               <div className="bg-white p-4 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm">Stops Done</p>
                     <p className="text-2xl font-bold text-gray-800 mt-1">
-                      {activeRoute.stops?.filter((s) => s.status === "completed").length || 0}
+                      {activeRoute.stops?.filter(
+                        (s) => s.status === "completed"
+                      ).length || 0}
                       <span className="text-base text-gray-400 font-normal">
                         /{activeRoute.stops?.length || 0}
                       </span>
@@ -392,7 +494,11 @@ const RouteExecution = () => {
                   <div>
                     <p className="text-gray-600 text-sm">Picked Up</p>
                     <p className="text-2xl font-bold text-green-600 mt-1">
-                      {routeStudents.filter((s) => s.pickup_status === "picked_up").length}
+                      {
+                        routeStudents.filter(
+                          (s) => s.pickup_status === "picked_up"
+                        ).length
+                      }
                     </p>
                   </div>
                   <FiCheck className="text-green-500 text-3xl" />
@@ -404,7 +510,11 @@ const RouteExecution = () => {
                   <div>
                     <p className="text-gray-600 text-sm">Pending</p>
                     <p className="text-2xl font-bold text-yellow-600 mt-1">
-                      {routeStudents.filter((s) => s.pickup_status === "pending_pickup").length}
+                      {
+                        routeStudents.filter(
+                          (s) => s.pickup_status === "pending_pickup"
+                        ).length
+                      }
                     </p>
                   </div>
                   <FiClock className="text-yellow-500 text-3xl" />
@@ -412,116 +522,217 @@ const RouteExecution = () => {
               </div>
             </div>
 
-            {/* Students grouped by stop — matches spec: "show only students for that stop" */}
+            {/* Students grouped by stop — spec: "cannot move to next stop until ALL students marked" */}
             <div className="space-y-4">
-              {[...(activeRoute.stops || [])]
-                .sort((a, b) => a.stop_sequence - b.stop_sequence)
-                .map((stop) => {
+              {(() => {
+                const sortedStops = [...(activeRoute.stops || [])].sort(
+                  (a, b) => a.stop_sequence - b.stop_sequence
+                );
+
+                // First stop that still has any pending_pickup student = the current active stop.
+                // All stops after it are locked.
+                const currentActiveIdx = sortedStops.findIndex((stop) => {
+                  const students = routeStudents.filter(
+                    (s) => s.route_stop_id === stop.id
+                  );
+                  return students.some(
+                    (s) => s.pickup_status === "pending_pickup"
+                  );
+                });
+
+                // If no pending pickups, check for in-vehicle students not yet dropped off
+                const currentDropoffIdx =
+                  currentActiveIdx === -1
+                    ? sortedStops.findIndex((stop) => {
+                        const students = routeStudents.filter(
+                          (s) => s.route_stop_id === stop.id
+                        );
+                        return students.some(
+                          (s) =>
+                            s.pickup_status === "picked_up" &&
+                            s.current_status !== "dropped_off"
+                        );
+                      })
+                    : -1;
+
+                const activeIdx =
+                  currentActiveIdx !== -1
+                    ? currentActiveIdx
+                    : currentDropoffIdx;
+
+                return sortedStops.map((stop, stopIdx) => {
                   const stopStudents = routeStudents.filter(
                     (s) => s.route_stop_id === stop.id
                   );
                   const handledCount = stopStudents.filter(
                     (s) => s.pickup_status !== "pending_pickup"
                   ).length;
-                  const allHandled = stopStudents.length > 0 && handledCount === stopStudents.length;
+                  const allHandled =
+                    stopStudents.length > 0 &&
+                    handledCount === stopStudents.length;
                   const inProgress = handledCount > 0 && !allHandled;
 
-                  const stopBg = allHandled
-                    ? "bg-green-50 border-green-200"
-                    : inProgress
-                      ? "bg-blue-50 border-blue-200"
-                      : "bg-white border-gray-200";
+                  // A stop is locked if it comes AFTER the current active stop
+                  const isLocked = activeIdx !== -1 && stopIdx > activeIdx;
 
-                  const stopBadge = allHandled
-                    ? "bg-green-100 text-green-700"
-                    : inProgress
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-gray-100 text-gray-600";
+                  const stopBg = isLocked
+                    ? "bg-gray-50 border-gray-200 opacity-60"
+                    : allHandled
+                      ? "bg-green-50 border-green-200"
+                      : inProgress
+                        ? "bg-blue-50 border-blue-200"
+                        : "bg-white border-gray-200";
+
+                  const stopBadge = isLocked
+                    ? "bg-gray-100 text-gray-400"
+                    : allHandled
+                      ? "bg-green-100 text-green-700"
+                      : inProgress
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-600";
 
                   return (
                     <div
                       key={stop.id}
-                      className={`rounded-lg border ${stopBg} overflow-hidden`}
+                      className={`rounded-lg border ${stopBg} overflow-hidden transition-all`}
                     >
                       {/* Stop header */}
                       <div className="flex items-center justify-between px-5 py-3">
                         <div className="flex items-center space-x-3">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white border-2 border-gray-300 text-sm font-bold text-gray-700">
-                            {stop.stop_sequence}
+                          <div
+                            className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                              isLocked
+                                ? "bg-gray-100 border-2 border-gray-200 text-gray-400"
+                                : allHandled
+                                  ? "bg-green-100 border-2 border-green-300 text-green-700"
+                                  : "bg-white border-2 border-gray-300 text-gray-700"
+                            }`}
+                          >
+                            {isLocked ? (
+                              <FiAlertCircle className="text-gray-400 text-sm" />
+                            ) : (
+                              stop.stop_sequence
+                            )}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900 text-sm">
+                            <p
+                              className={`font-semibold text-sm ${
+                                isLocked ? "text-gray-400" : "text-gray-900"
+                              }`}
+                            >
                               {stop.stop_name}
                             </p>
                             <p className="text-xs text-gray-500 capitalize">
-                              {stop.stop_type} · {stopStudents.length} student{stopStudents.length !== 1 ? "s" : ""}
+                              {stop.stop_type} · {stopStudents.length} student
+                              {stopStudents.length !== 1 ? "s" : ""}
                             </p>
                           </div>
                         </div>
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${stopBadge}`}>
-                          {allHandled ? "✓ Done" : inProgress ? `${handledCount}/${stopStudents.length}` : "Pending"}
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${stopBadge}`}
+                        >
+                          {isLocked
+                            ? "🔒 Locked"
+                            : allHandled
+                              ? "✓ Done"
+                              : inProgress
+                                ? `${handledCount}/${stopStudents.length}`
+                                : "Current"}
                         </span>
                       </div>
 
-                      {/* Students at this stop */}
-                      {stopStudents.length === 0 ? (
-                        <p className="px-5 pb-3 text-xs text-gray-400 italic">No students assigned to this stop</p>
-                      ) : (
-                        <div className="divide-y divide-gray-100">
-                          {stopStudents
-                            .sort((a, b) => a.sequence_position - b.sequence_position)
-                            .map((student) => (
-                              <div key={student.id} className="flex items-center justify-between px-5 py-3">
-                                <div className="flex items-center space-x-3 flex-1">
-                                  <p className="font-medium text-gray-800 text-sm">
-                                    {student?.student?.full_name}
-                                  </p>
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(
-                                      student.pickup_status
-                                    )} ${getStatusColor(student.pickup_status)}`}
-                                  >
-                                    {student.pickup_status === "pending_pickup"
-                                      ? "Pending"
-                                      : student.pickup_status === "picked_up"
-                                        ? student.current_status === "dropped_off"
-                                          ? "Dropped Off"
-                                          : "In Vehicle"
-                                        : student.pickup_status}
-                                  </span>
-                                </div>
-
-                                <div className="flex space-x-2">
-                                  {student.pickup_status === "pending_pickup" && (
-                                    <button
-                                      onClick={() => { setSelectedRoute(student); setShowPickupFlow(true); }}
-                                      className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition"
-                                    >
-                                      Pickup
-                                    </button>
-                                  )}
-                                  {student.pickup_status === "picked_up" &&
-                                    student.current_status !== "dropped_off" && (
-                                      <button
-                                        onClick={() => { setSelectedRoute(student); setShowDropoffFlow(true); }}
-                                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium transition"
-                                      >
-                                        Dropoff
-                                      </button>
-                                    )}
-                                  {student.current_status === "dropped_off" && (
-                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                      ✓ Done
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                      {/* Lock notice */}
+                      {isLocked && (
+                        <div className="px-5 pb-3">
+                          <p className="text-xs text-gray-400 italic">
+                            Complete stop{" "}
+                            {sortedStops[activeIdx]?.stop_sequence} —{" "}
+                            {sortedStops[activeIdx]?.stop_name} — before
+                            proceeding here.
+                          </p>
                         </div>
                       )}
+
+                      {/* Students at this stop */}
+                      {!isLocked &&
+                        (stopStudents.length === 0 ? (
+                          <p className="px-5 pb-3 text-xs text-gray-400 italic">
+                            No students assigned to this stop
+                          </p>
+                        ) : (
+                          <div className="divide-y divide-gray-100">
+                            {stopStudents
+                              .sort(
+                                (a, b) =>
+                                  a.sequence_position - b.sequence_position
+                              )
+                              .map((student) => (
+                                <div
+                                  key={student.id}
+                                  className="flex items-center justify-between px-5 py-3"
+                                >
+                                  <div className="flex items-center space-x-3 flex-1">
+                                    <p className="font-medium text-gray-800 text-sm">
+                                      {student?.student?.full_name}
+                                    </p>
+                                    <span
+                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(
+                                        student.pickup_status
+                                      )} ${getStatusColor(student.pickup_status)}`}
+                                    >
+                                      {student.pickup_status ===
+                                      "pending_pickup"
+                                        ? "Pending"
+                                        : student.pickup_status === "picked_up"
+                                          ? student.current_status ===
+                                            "dropped_off"
+                                            ? "Dropped Off"
+                                            : "In Vehicle"
+                                          : student.pickup_status}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex space-x-2">
+                                    {student.pickup_status ===
+                                      "pending_pickup" && (
+                                      <button
+                                        onClick={() => {
+                                          setSelectedRoute(student);
+                                          setShowPickupFlow(true);
+                                        }}
+                                        className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition"
+                                      >
+                                        Pickup
+                                      </button>
+                                    )}
+                                    {student.pickup_status === "picked_up" &&
+                                      student.current_status !==
+                                        "dropped_off" && (
+                                        <button
+                                          onClick={() => {
+                                            setSelectedRoute(student);
+                                            setShowDropoffFlow(true);
+                                          }}
+                                          className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium transition"
+                                        >
+                                          Dropoff
+                                        </button>
+                                      )}
+                                    {student.current_status ===
+                                      "dropped_off" && (
+                                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                        ✓ Done
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        ))}
                     </div>
                   );
-                })}
+                });
+              })()}
             </div>
 
             {routeStudents.filter(

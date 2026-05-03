@@ -19,7 +19,9 @@ import {
   getRoutesApi,
   getTransportExceptionsApi,
   getLiveLocationsApi,
-  resolveExceptionApi
+  resolveExceptionApi,
+  adminOverridePickupApi,
+  adminOverrideDropoffApi
 } from "../../../services/api_services";
 import { Socket } from "../../../components/Socket/Socket";
 import moment from "moment";
@@ -39,6 +41,12 @@ const Dashboard = () => {
   const [resolveModal, setResolveModal] = useState(null); // { exception, action }
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [resolving, setResolving] = useState(false);
+  const [overrideModal, setOverrideModal] = useState(null); // { student, route, mode: 'pickup'|'dropoff' }
+  const [overrideStatus, setOverrideStatus] = useState("picked_up");
+  const [overrideSkipReason, setOverrideSkipReason] = useState("");
+  const [overrideRecipientType, setOverrideRecipientType] = useState("parent");
+  const [overrideRecipientName, setOverrideRecipientName] = useState("");
+  const [overriding, setOverriding] = useState(false);
   const userData = JSON.parse(localStorage.getItem("user-data") || "{}");
   const socketReadyRef = useRef(false);
 
@@ -113,6 +121,57 @@ const Dashboard = () => {
       Socket.off("transport:student_update", handleStudentUpdate);
     };
   }, [userData?.id]);
+
+  const handleOverride = async () => {
+    if (!overrideModal) return;
+    setOverriding(true);
+    try {
+      let res;
+      if (overrideModal.mode === "pickup") {
+        res = await adminOverridePickupApi({
+          student_transport_id: overrideModal.student.id,
+          pickup_status: overrideStatus,
+          skip_reason: overrideStatus === "skipped" ? overrideSkipReason : null
+        });
+      } else {
+        res = await adminOverrideDropoffApi({
+          student_transport_id: overrideModal.student.id,
+          recipient_type: overrideRecipientType,
+          recipient_name: overrideRecipientName
+        });
+      }
+
+      if (res.data.status === 1) {
+        toast.success("Student status updated");
+        // Optimistic local update
+        const newPickupStatus = overrideModal.mode === "pickup" ? overrideStatus : overrideModal.student.pickup_status;
+        const newCurrentStatus = overrideModal.mode === "dropoff" ? "dropped_off" : overrideStatus === "picked_up" ? "in_vehicle" : "pending";
+        setRoutes((prev) =>
+          prev.map((route) => {
+            if (route.id !== overrideModal.route.id) return route;
+            return {
+              ...route,
+              students: (route.students || []).map((s) =>
+                s.id === overrideModal.student.id
+                  ? { ...s, pickup_status: newPickupStatus, current_status: newCurrentStatus }
+                  : s
+              )
+            };
+          })
+        );
+        setOverrideModal(null);
+        setOverrideStatus("picked_up");
+        setOverrideSkipReason("");
+        setOverrideRecipientName("");
+      } else {
+        toast.error(res.data.message || "Override failed");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Override failed");
+    } finally {
+      setOverriding(false);
+    }
+  };
 
   const fetchLiveLocations = async () => {
     try {
@@ -345,7 +404,7 @@ const Dashboard = () => {
                     }
                     className="ml-4 text-gray-400 hover:text-gray-600 flex-shrink-0"
                   >
-                    <FiAlertTriangle className="text-sm" />
+                    <FiX className="text-sm" />
                   </button>
                 </div>
               ))}
@@ -697,17 +756,47 @@ const Dashboard = () => {
                                       ? { label: "Skipped", cls: "bg-orange-100 text-orange-800" }
                                       : { label: "Pending", cls: "bg-yellow-100 text-yellow-800" };
 
+                            const canOverridePickup =
+                              route.status === "active" &&
+                              student.pickup_status === "pending_pickup";
+                            const canOverrideDropoff =
+                              route.status === "active" &&
+                              student.pickup_status === "picked_up" &&
+                              student.current_status !== "dropped_off";
+
                             return (
                               <div
                                 key={student.id}
                                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                               >
-                                <p className="font-medium text-gray-800 text-sm">
-                                  {student?.student?.full_name}
-                                </p>
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${status.cls}`}>
-                                  {status.label}
-                                </span>
+                                <div className="flex items-center space-x-2">
+                                  <p className="font-medium text-gray-800 text-sm">
+                                    {student?.student?.full_name}
+                                  </p>
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${status.cls}`}>
+                                    {status.label}
+                                  </span>
+                                </div>
+                                <div className="flex space-x-1">
+                                  {canOverridePickup && (
+                                    <button
+                                      onClick={() => setOverrideModal({ student, route, mode: "pickup" })}
+                                      className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 hover:bg-yellow-200 rounded font-medium transition"
+                                      title="Admin override: mark pickup status"
+                                    >
+                                      Override
+                                    </button>
+                                  )}
+                                  {canOverrideDropoff && (
+                                    <button
+                                      onClick={() => setOverrideModal({ student, route, mode: "dropoff" })}
+                                      className="px-2 py-1 text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 rounded font-medium transition"
+                                      title="Admin override: mark as dropped off"
+                                    >
+                                      Dropoff
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
@@ -919,6 +1008,122 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Admin manual override modal */}
+      {overrideModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">
+                  {overrideModal.mode === "pickup" ? "Override Pickup Status" : "Override Dropoff"}
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {overrideModal.student?.student?.full_name} — {overrideModal.route?.route_name}
+                </p>
+              </div>
+              <button onClick={() => setOverrideModal(null)} className="text-gray-400 hover:text-gray-600">
+                <FiX />
+              </button>
+            </div>
+
+            <div className="p-4 mb-2 mx-6 mt-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs text-yellow-800">
+                <strong>Admin Override</strong> — use only when the driver is unable to update. This action will be logged with your name in the audit trail.
+              </p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {overrideModal.mode === "pickup" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+                    <div className="space-y-2">
+                      {["picked_up", "absent", "skipped"].map((s) => (
+                        <label key={s} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="override_status"
+                            value={s}
+                            checked={overrideStatus === s}
+                            onChange={() => setOverrideStatus(s)}
+                            className="w-4 h-4"
+                          />
+                          <span className="ml-3 text-sm font-medium capitalize text-gray-700">
+                            {s.replace(/_/g, " ")}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {overrideStatus === "skipped" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Skip Reason *</label>
+                      <textarea
+                        value={overrideSkipReason}
+                        onChange={(e) => setOverrideSkipReason(e.target.value)}
+                        rows={2}
+                        placeholder="Reason for skipping..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Recipient Type</label>
+                    <div className="flex space-x-3">
+                      {["parent", "authorized_person"].map((t) => (
+                        <label key={t} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value={t}
+                            checked={overrideRecipientType === t}
+                            onChange={() => setOverrideRecipientType(t)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm text-gray-700 capitalize">{t.replace(/_/g, " ")}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Name *</label>
+                    <input
+                      type="text"
+                      value={overrideRecipientName}
+                      onChange={(e) => setOverrideRecipientName(e.target.value)}
+                      placeholder="Name of person receiving the child"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex space-x-3 px-6 pb-6">
+              <button
+                onClick={handleOverride}
+                disabled={
+                  overriding ||
+                  (overrideModal.mode === "pickup" && overrideStatus === "skipped" && !overrideSkipReason.trim()) ||
+                  (overrideModal.mode === "dropoff" && !overrideRecipientName.trim())
+                }
+                className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white rounded-lg font-medium text-sm transition"
+              >
+                {overriding ? "Saving..." : "Confirm Override"}
+              </button>
+              <button
+                onClick={() => setOverrideModal(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

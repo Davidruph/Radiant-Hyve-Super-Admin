@@ -23,15 +23,17 @@ import blockModalIcon from "../../../assets/icons/BlockIcon.png";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import documentIcon from "../../../assets/icons/document-text.png";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
-import { FiUploadCloud } from "react-icons/fi";
+import { FiUploadCloud, FiMapPin, FiTruck, FiUser, FiClock, FiActivity } from "react-icons/fi";
 import {
   BlockParentApi,
   changePasswordParentApi,
   deleteParentApi,
   editParentsApi,
   getParentsDetailsApi,
-  getParentsStudentsApi
+  getParentsStudentsApi,
+  getStudentTransportStatusApi
 } from "../../../services/api_services";
+import moment from "moment";
 import toast from "react-hot-toast";
 import Skeleton from "react-loading-skeleton";
 import { ErrorMessage, Field, Form, Formik } from "formik";
@@ -72,6 +74,11 @@ export default function ParentsDetails() {
   const [reasonError, setReasonError] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
   const [deleteReasonError, setDeleteReasonError] = useState("");
+
+  // Transport status section
+  const [selectedStudentForTransport, setSelectedStudentForTransport] = useState(null);
+  const [transportStatus, setTransportStatus] = useState(null);
+  const [transportLoading, setTransportLoading] = useState(false);
 
   const accountDetails = {
     email: parentsData?.email,
@@ -162,6 +169,27 @@ export default function ParentsDetails() {
   useEffect(() => {
     getParentsStudentsList();
   }, [id, pageNo]);
+
+  const fetchTransportStatus = async (studentId) => {
+    if (!studentId) return;
+    setTransportLoading(true);
+    setTransportStatus(null);
+    try {
+      const res = await getStudentTransportStatusApi(studentId);
+      if (res.data.status === 1) {
+        setTransportStatus(res.data.data);
+      }
+    } catch {
+      // non-critical
+    } finally {
+      setTransportLoading(false);
+    }
+  };
+
+  const handleSelectStudentForTransport = (student) => {
+    setSelectedStudentForTransport(student);
+    fetchTransportStatus(student.id);
+  };
 
   useEffect(() => {
     parentsDetails();
@@ -767,6 +795,201 @@ export default function ParentsDetails() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* ── Transport Status Section ─────────────────────────────── */}
+      <div className="mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <FiTruck className="text-blue-500 text-lg" />
+            <h3 className="font-semibold text-gray-900">Transport Status</h3>
+          </div>
+
+          {/* Student picker */}
+          <select
+            value={selectedStudentForTransport?.id || ""}
+            onChange={(e) => {
+              const student = parentStudentList.find((s) => s.id === e.target.value);
+              if (student) handleSelectStudentForTransport(student);
+              else { setSelectedStudentForTransport(null); setTransportStatus(null); }
+            }}
+            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select a child...</option>
+            {parentStudentList.map((s) => (
+              <option key={s.id} value={s.id}>{s.full_name}</option>
+            ))}
+          </select>
+        </div>
+
+        {!selectedStudentForTransport && (
+          <div className="p-8 text-center text-gray-400 text-sm">
+            Select a child above to see their live transport status
+          </div>
+        )}
+
+        {transportLoading && (
+          <div className="p-8 flex justify-center"><DotLoader /></div>
+        )}
+
+        {!transportLoading && transportStatus && (
+          <div className="p-6 space-y-6">
+
+            {/* Active route card */}
+            {transportStatus.active_transport ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    <p className="font-semibold text-green-900">Currently On Route</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    transportStatus.active_transport.current_status === "dropped_off"
+                      ? "bg-blue-100 text-blue-700"
+                      : transportStatus.active_transport.pickup_status === "picked_up"
+                        ? "bg-green-100 text-green-700"
+                        : transportStatus.active_transport.pickup_status === "absent"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {transportStatus.active_transport.current_status === "dropped_off"
+                      ? "Dropped Off"
+                      : transportStatus.active_transport.pickup_status === "picked_up"
+                        ? "In Vehicle"
+                        : transportStatus.active_transport.pickup_status === "absent"
+                          ? "Absent"
+                          : "Awaiting Pickup"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-500 text-xs">Route</p>
+                    <p className="font-medium text-gray-800">
+                      {transportStatus.active_transport.route?.route_name || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Driver</p>
+                    <p className="font-medium text-gray-800">
+                      {transportStatus.active_transport.route?.driver?.full_name || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Vehicle</p>
+                    <p className="font-medium text-gray-800">
+                      {transportStatus.active_transport.route?.vehicle?.vehicle_name || "—"}
+                      {transportStatus.active_transport.route?.vehicle?.registration_plate
+                        ? ` · ${transportStatus.active_transport.route.vehicle.registration_plate}` : ""}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Stop</p>
+                    <p className="font-medium text-gray-800">
+                      {transportStatus.active_transport.stop?.stop_name || "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {transportStatus.live_location && (
+                  <a
+                    href={`https://www.google.com/maps?q=${transportStatus.live_location.latitude},${transportStatus.live_location.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center space-x-2 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    <FiMapPin size={12} />
+                    <span>
+                      View live location · Last updated{" "}
+                      {moment(transportStatus.live_location.last_updated).fromNow()}
+                    </span>
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm text-gray-500">
+                <FiTruck className="mx-auto text-gray-300 text-2xl mb-2" />
+                No active route right now
+              </div>
+            )}
+
+            {/* Authorized recipients */}
+            {transportStatus.authorized_recipients?.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
+                  <FiUser size={14} />
+                  <span>Authorized Recipients</span>
+                </p>
+                <div className="space-y-1">
+                  {transportStatus.authorized_recipients.map((r) => (
+                    <div key={r.id} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
+                      <div>
+                        <span className="font-medium text-gray-800">{r.recipient_name}</span>
+                        {r.relationship_to_student && (
+                          <span className="text-gray-500 ml-2 text-xs">({r.relationship_to_student})</span>
+                        )}
+                        {r.recipient_phone && (
+                          <span className="text-gray-500 ml-2 text-xs">· {r.recipient_phone}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {r.is_primary && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Primary</span>
+                        )}
+                        <span className="text-xs text-gray-400 capitalize">{r.recipient_type?.replace(/_/g, " ")}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent transport logs */}
+            {transportStatus.recent_logs?.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
+                  <FiActivity size={14} />
+                  <span>Recent Transport Activity</span>
+                </p>
+                <div className="space-y-1 max-h-64 overflow-y-auto">
+                  {transportStatus.recent_logs.map((log) => (
+                    <div key={log.id} className="flex items-start justify-between text-xs bg-gray-50 rounded-lg px-3 py-2">
+                      <div className="flex items-start space-x-2">
+                        <span className={`mt-0.5 px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                          log.event_type === "pickup_completed" ? "bg-green-100 text-green-700" :
+                          log.event_type === "dropoff_completed" ? "bg-blue-100 text-blue-700" :
+                          log.event_type === "pickup_absent" ? "bg-red-100 text-red-700" :
+                          log.event_type === "route_started" ? "bg-purple-100 text-purple-700" :
+                          "bg-gray-100 text-gray-600"
+                        }`}>
+                          {log.event_type?.replace(/_/g, " ")}
+                        </span>
+                        <div>
+                          <p className="text-gray-700">{log.event_description}</p>
+                          <p className="text-gray-400 mt-0.5">
+                            {log.route?.route_name} · {log.driver?.full_name}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="flex-shrink-0 text-gray-400 ml-2 whitespace-nowrap">
+                        <FiClock className="inline mr-1" size={10} />
+                        {moment(log.created_at).format("MMM D, HH:mm")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {transportStatus.recent_logs?.length === 0 &&
+              !transportStatus.active_transport && (
+                <p className="text-sm text-gray-400 text-center">No transport history yet</p>
+              )}
+          </div>
+        )}
       </div>
 
       <Dialog

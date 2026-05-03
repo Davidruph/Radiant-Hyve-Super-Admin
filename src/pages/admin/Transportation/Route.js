@@ -24,7 +24,8 @@ import {
   getDropoffRecipientsApi,
   addDropoffRecipientApi,
   removeDropoffRecipientApi,
-  cancelRouteApi
+  cancelRouteApi,
+  updateRouteApi
 } from "../../../services/api_services";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
@@ -72,6 +73,9 @@ const Route = () => {
   const [cancelModal, setCancelModal] = useState(null); // route object
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [editModal, setEditModal] = useState(null); // route object
+  const [editForm, setEditForm] = useState({ route_name: "", scheduled_start_time: "", scheduled_end_time: "", notes: "" });
+  const [saving, setSaving] = useState(false);
   const [addRecipientFor, setAddRecipientFor] = useState(null); // student_id
   const [newRecipient, setNewRecipient] = useState({
     recipient_type: "parent",
@@ -238,6 +242,46 @@ const Route = () => {
       }
     } catch {
       toast.error("Failed to add recipient");
+    }
+  };
+
+  const openEditModal = (route) => {
+    setEditModal(route);
+    setEditForm({
+      route_name: route.route_name || "",
+      scheduled_start_time: route.scheduled_start_time
+        ? new Date(route.scheduled_start_time).toISOString().slice(0, 16)
+        : "",
+      scheduled_end_time: route.scheduled_end_time
+        ? new Date(route.scheduled_end_time).toISOString().slice(0, 16)
+        : "",
+      notes: route.notes || ""
+    });
+  };
+
+  const handleEditRoute = async () => {
+    if (!editModal) return;
+    setSaving(true);
+    try {
+      const res = await updateRouteApi(editModal.id, {
+        route_name: editForm.route_name || undefined,
+        scheduled_start_time: editForm.scheduled_start_time || undefined,
+        scheduled_end_time: editForm.scheduled_end_time || undefined,
+        notes: editForm.notes || undefined
+      });
+      if (res.data.status === 1) {
+        toast.success("Route updated");
+        setRoutes((prev) =>
+          prev.map((r) => (r.id === editModal.id ? { ...r, ...res.data.data } : r))
+        );
+        setEditModal(null);
+      } else {
+        toast.error(res.data.message || "Failed to update route");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update route");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -422,8 +466,16 @@ const Route = () => {
                   </button>
                   {route.status === "scheduled" && (
                     <button
+                      onClick={() => openEditModal(route)}
+                      className="flex-1 text-sm bg-gray-50 text-gray-700 hover:bg-gray-100 py-1 rounded transition font-medium"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {route.status === "scheduled" && (
+                    <button
                       onClick={() => setCancelModal(route)}
-                      className="flex-1 text-sm bg-red-50 text-red-600 hover:bg-red-100 py-1 rounded transition font-medium"
+                      className="text-sm bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded transition font-medium"
                     >
                       Cancel
                     </button>
@@ -1116,6 +1168,74 @@ const Route = () => {
           )}
         </Dialog.Panel>
       </Dialog>
+
+      {/* Route edit modal */}
+      {editModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="font-bold text-gray-900 text-lg">Edit Route</h3>
+              <button onClick={() => setEditModal(null)} className="text-gray-400 hover:text-gray-600">
+                <FiX />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Route Name</label>
+                <input
+                  type="text"
+                  value={editForm.route_name}
+                  onChange={(e) => setEditForm((p) => ({ ...p, route_name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                <input
+                  type="datetime-local"
+                  value={editForm.scheduled_start_time}
+                  min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                  onChange={(e) => setEditForm((p) => ({ ...p, scheduled_start_time: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Time (optional)</label>
+                <input
+                  type="datetime-local"
+                  value={editForm.scheduled_end_time}
+                  onChange={(e) => setEditForm((p) => ({ ...p, scheduled_end_time: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <textarea
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm((p) => ({ ...p, notes: e.target.value }))}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleEditRoute}
+                  disabled={saving || !editForm.route_name.trim()}
+                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg font-medium text-sm transition"
+                >
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  onClick={() => setEditModal(null)}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Route cancellation confirmation modal */}
       {cancelModal && (

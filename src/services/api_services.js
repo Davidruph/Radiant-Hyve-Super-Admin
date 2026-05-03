@@ -940,9 +940,33 @@ export const getLiveLocationsApi = () => {
 // TRANSPORTATION - DROP-OFF RECIPIENTS
 // =====================================================
 
+export const adminOverridePickupApi = (data) => {
+  return axios.post(
+    `${require("./api").BASE_URL}/api/transport/admin/override/pickup`,
+    data,
+    { headers: header }
+  );
+};
+
+export const adminOverrideDropoffApi = (data) => {
+  return axios.post(
+    `${require("./api").BASE_URL}/api/transport/admin/override/dropoff`,
+    data,
+    { headers: header }
+  );
+};
+
 export const getStudentTransportStatusApi = (studentId) => {
   return axios.get(
     `${require("./api").BASE_URL}/api/transport/student/${studentId}/status`,
+    { headers: header }
+  );
+};
+
+export const updateRouteApi = (routeId, data) => {
+  return axios.put(
+    `${require("./api").BASE_URL}/api/transport/route/${routeId}`,
+    data,
     { headers: header }
   );
 };
