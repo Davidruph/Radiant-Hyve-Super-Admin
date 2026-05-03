@@ -63,6 +63,7 @@ const RouteExecution = () => {
   const locationIntervalRef = useRef(null);
   const watchIdRef = useRef(null);          // watchPosition ID
   const lastPositionRef = useRef(null);     // most recent valid GPS fix
+  const socketReadyRef = useRef(false);
   const [gpsStatus, setGpsStatus] = useState("waiting"); // "tracking" | "waiting" | "denied"
 
   const handleChecklistChange = (name) => {
@@ -76,6 +77,30 @@ const RouteExecution = () => {
 
   useEffect(() => {
     restoreActiveRouteIfAny();
+  }, []);
+
+  // Connect socket and register driver so the server can emit events to this client
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user-data") || "{}");
+
+    const register = () => {
+      if (!socketReadyRef.current) {
+        socketReadyRef.current = true;
+        Socket.emit("socket_register", { user_id: userData?.id });
+      }
+    };
+
+    if (!Socket.connected) {
+      Socket.connect();
+      Socket.once("connect", register);
+    } else {
+      register();
+    }
+
+    return () => {
+      socketReadyRef.current = false;
+      Socket.disconnect();
+    };
   }, []);
 
   // Real-time: when admin creates a new route assigned to this driver, add it to the list
@@ -694,21 +719,24 @@ const RouteExecution = () => {
                                         student.pickup_status
                                       )} ${getStatusColor(student.pickup_status)}`}
                                     >
-                                      {student.pickup_status ===
-                                      "pending_pickup"
+                                      {student.pickup_status === "pending_pickup"
                                         ? "Pending"
                                         : student.pickup_status === "picked_up"
-                                          ? student.current_status ===
-                                            "dropped_off"
-                                            ? "Dropped Off"
-                                            : "In Vehicle"
-                                          : student.pickup_status}
+                                          ? activeRoute?.route_type === "pickup"
+                                            ? "Picked Up"
+                                            : student.current_status === "dropped_off"
+                                              ? "Dropped Off"
+                                              : "In Vehicle"
+                                          : student.pickup_status === "absent"
+                                            ? "Absent"
+                                            : "Skipped"}
                                     </span>
                                   </div>
 
                                   <div className="flex space-x-2">
-                                    {student.pickup_status ===
-                                      "pending_pickup" && (
+                                    {/* Pickup button — hidden for dropoff-only routes */}
+                                    {activeRoute?.route_type !== "dropoff" &&
+                                      student.pickup_status === "pending_pickup" && (
                                       <button
                                         onClick={() => {
                                           setSelectedRoute(student);
@@ -719,9 +747,10 @@ const RouteExecution = () => {
                                         Pickup
                                       </button>
                                     )}
-                                    {student.pickup_status === "picked_up" &&
-                                      student.current_status !==
-                                        "dropped_off" && (
+                                    {/* Dropoff button — hidden for pickup-only routes */}
+                                    {activeRoute?.route_type !== "pickup" &&
+                                      student.pickup_status === "picked_up" &&
+                                      student.current_status !== "dropped_off" && (
                                         <button
                                           onClick={() => {
                                             setSelectedRoute(student);
@@ -732,8 +761,10 @@ const RouteExecution = () => {
                                           Dropoff
                                         </button>
                                       )}
-                                    {student.current_status ===
-                                      "dropped_off" && (
+                                    {/* Done: for pickup routes, picked_up is the final state */}
+                                    {(activeRoute?.route_type === "pickup"
+                                      ? student.pickup_status === "picked_up"
+                                      : student.current_status === "dropped_off") && (
                                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                         ✓ Done
                                       </span>

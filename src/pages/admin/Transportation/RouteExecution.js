@@ -418,7 +418,13 @@ const RouteExecution = () => {
         {/* Students List */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="bg-gray-50 px-6 py-3 border-b">
-            <h3 className="font-semibold text-gray-900">Pickup Sequence</h3>
+            <h3 className="font-semibold text-gray-900">
+              {activeRoute?.route_type === "dropoff"
+                ? "Dropoff Sequence"
+                : activeRoute?.route_type === "round_trip"
+                  ? "Pickup & Dropoff Sequence"
+                  : "Pickup Sequence"}
+            </h3>
           </div>
 
           <div className="divide-y">
@@ -459,25 +465,33 @@ const RouteExecution = () => {
                         {student.pickup_status === "pending_pickup"
                           ? "Pending"
                           : student.pickup_status === "picked_up"
-                            ? "Picked Up"
+                            ? activeRoute?.route_type === "pickup"
+                              ? "Picked Up"
+                              : student.current_status === "dropped_off"
+                                ? "Dropped Off"
+                                : "In Vehicle"
                             : student.pickup_status === "absent"
                               ? "Absent"
                               : "Skipped"}
                       </span>
 
-                      {student.pickup_status === "pending_pickup" && (
-                        <button
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setShowPickupFlow(true);
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium transition"
-                        >
-                          Update
-                        </button>
-                      )}
+                      {/* Update/Pickup button — hidden for dropoff-only routes */}
+                      {activeRoute?.route_type !== "dropoff" &&
+                        student.pickup_status === "pending_pickup" && (
+                          <button
+                            onClick={() => {
+                              setSelectedStudent(student);
+                              setShowPickupFlow(true);
+                            }}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium transition"
+                          >
+                            Update
+                          </button>
+                        )}
 
-                      {student.pickup_status === "picked_up" &&
+                      {/* Dropoff button — hidden for pickup-only routes */}
+                      {activeRoute?.route_type !== "pickup" &&
+                        student.pickup_status === "picked_up" &&
                         student.current_status === "in_vehicle" && (
                           <button
                             onClick={() => {
@@ -490,7 +504,10 @@ const RouteExecution = () => {
                           </button>
                         )}
 
-                      {student.current_status === "dropped_off" && (
+                      {/* Done: pickup routes finish at picked_up; others finish at dropped_off */}
+                      {(activeRoute?.route_type === "pickup"
+                        ? student.pickup_status === "picked_up"
+                        : student.current_status === "dropped_off") && (
                         <FiCheckCircle className="text-green-500 text-lg" />
                       )}
                     </div>
@@ -501,15 +518,33 @@ const RouteExecution = () => {
         </div>
 
         {/* End Route Button */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowEndRoute(true)}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg transition flex items-center justify-center gap-2 font-semibold"
-          >
-            <FiCheckCircle />
-            End Route & Confirm Safety Check
-          </button>
-        </div>
+        {(() => {
+          const isPickupOnly = activeRoute?.route_type === "pickup";
+          const blockedCount = isPickupOnly
+            ? routeStudents.filter((s) => s.pickup_status === "pending_pickup").length
+            : routeStudents.filter((s) => s.pickup_status === "picked_up" && s.current_status !== "dropped_off").length;
+          const blockMsg = isPickupOnly
+            ? `${blockedCount} student(s) not yet processed.`
+            : `${blockedCount} student(s) still in vehicle — complete all dropoffs first.`;
+          return (
+            <div className="space-y-2">
+              {blockedCount > 0 && (
+                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+                  <FiAlertCircle className="mt-0.5 flex-shrink-0" />
+                  <span>{blockMsg}</span>
+                </div>
+              )}
+              <button
+                onClick={() => setShowEndRoute(true)}
+                disabled={blockedCount > 0}
+                className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg transition flex items-center justify-center gap-2 font-semibold"
+              >
+                <FiCheckCircle />
+                End Route & Confirm Safety Check
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Pickup Flow Modal */}

@@ -26,7 +26,6 @@ import {
 import { Socket } from "../../../components/Socket/Socket";
 import moment from "moment";
 
-const GOOGLE_MAPS_KEY = "AIzaSyBBLcXrmcY2pdzrI4uiyhFdOefMDZhxVc4";
 
 const Dashboard = () => {
   const [routes, setRoutes] = useState([]);
@@ -518,7 +517,8 @@ const Dashboard = () => {
                 {Object.values(liveLocations).map((loc) => {
                   const lat = parseFloat(loc.latitude);
                   const lng = parseFloat(loc.longitude);
-                  const mapSrc = `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_KEY}&q=${lat},${lng}&zoom=15`;
+                  const delta = 0.01;
+                  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - delta},${lat - delta},${lng + delta},${lat + delta}&layer=mapnik&marker=${lat},${lng}`;
                   const matchedRoute = routes.find(
                     (r) => r.id === loc.route_id
                   );
