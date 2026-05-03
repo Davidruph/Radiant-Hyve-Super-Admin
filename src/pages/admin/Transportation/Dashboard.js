@@ -97,6 +97,14 @@ const Dashboard = () => {
       );
     };
 
+    const handleRouteUpdate = (data) => {
+      setRoutes((prev) =>
+        prev.map((route) =>
+          route.id === data.route_id ? { ...route, status: data.status } : route
+        )
+      );
+    };
+
     const handleException = (data) => {
       setLiveAlerts((prev) => {
         // Avoid duplicates for the same exception_id
@@ -114,11 +122,13 @@ const Dashboard = () => {
     Socket.on("transport:location_update", handleLocationUpdate);
     Socket.on("transport:exception", handleException);
     Socket.on("transport:student_update", handleStudentUpdate);
+    Socket.on("transport:route_update", handleRouteUpdate);
 
     return () => {
       Socket.off("transport:location_update", handleLocationUpdate);
       Socket.off("transport:exception", handleException);
       Socket.off("transport:student_update", handleStudentUpdate);
+      Socket.off("transport:route_update", handleRouteUpdate);
     };
   }, [userData?.id]);
 

@@ -24,6 +24,7 @@ import {
   updateDriverLocationApi
 } from "../../../services/api_services";
 import moment from "moment";
+import { Socket } from "../../../components/Socket/Socket";
 
 const pickupValidationSchema = Yup.object().shape({
   pickup_status: Yup.string()
@@ -75,6 +76,19 @@ const RouteExecution = () => {
 
   useEffect(() => {
     restoreActiveRouteIfAny();
+  }, []);
+
+  // Real-time: when admin creates a new route assigned to this driver, add it to the list
+  useEffect(() => {
+    const handleRouteAssigned = (data) => {
+      if (!data?.route) return;
+      setRoutes((prev) => {
+        if (prev.some((r) => r.id === data.route.id)) return prev;
+        return [data.route, ...prev];
+      });
+    };
+    Socket.on("transport:route_assigned", handleRouteAssigned);
+    return () => Socket.off("transport:route_assigned", handleRouteAssigned);
   }, []);
 
   // On mount: check if there is an in-progress route and restore it.
@@ -735,43 +749,35 @@ const RouteExecution = () => {
               })()}
             </div>
 
-            {routeStudents.filter(
-              (s) =>
-                s.pickup_status === "picked_up" &&
-                s.current_status !== "dropped_off"
-            ).length > 0 && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-300 rounded-lg flex items-start space-x-3">
-                <FiAlertCircle className="text-red-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-red-800 font-medium">
-                  {
-                    routeStudents.filter(
-                      (s) =>
-                        s.pickup_status === "picked_up" &&
-                        s.current_status !== "dropped_off"
-                    ).length
-                  }{" "}
-                  student(s) still in vehicle — complete all dropoffs before
-                  ending the route.
-                </p>
-              </div>
-            )}
-
-            <div className="mt-4">
-              <button
-                onClick={() => setShowEndRoute(true)}
-                disabled={
-                  routeStudents.filter(
-                    (s) =>
-                      s.pickup_status === "picked_up" &&
-                      s.current_status !== "dropped_off"
-                  ).length > 0
-                }
-                className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
-              >
-                <FiCheckCircle className="inline mr-2" />
-                End Route &amp; Confirm Vehicle Check
-              </button>
-            </div>
+            {(() => {
+              const isPickupOnly = activeRoute?.route_type === "pickup";
+              const blockedCount = isPickupOnly
+                ? routeStudents.filter((s) => s.pickup_status === "pending_pickup").length
+                : routeStudents.filter((s) => s.pickup_status === "picked_up" && s.current_status !== "dropped_off").length;
+              const blockMsg = isPickupOnly
+                ? `${blockedCount} student(s) not yet processed — mark each as picked up, absent, or skipped first.`
+                : `${blockedCount} student(s) still in vehicle — complete all dropoffs before ending the route.`;
+              return (
+                <>
+                  {blockedCount > 0 && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-300 rounded-lg flex items-start space-x-3">
+                      <FiAlertCircle className="text-red-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-red-800 font-medium">{blockMsg}</p>
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setShowEndRoute(true)}
+                      disabled={blockedCount > 0}
+                      className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
+                    >
+                      <FiCheckCircle className="inline mr-2" />
+                      End Route &amp; Confirm Vehicle Check
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </Fragment>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1056,6 +1062,7 @@ const RouteExecution = () => {
               validationSchema={dropoffValidationSchema}
               onSubmit={handleDropoffStudent}
             >
+              {({ isSubmitting }) => (
               <Form className="p-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -1112,23 +1119,26 @@ const RouteExecution = () => {
                 <div className="flex space-x-3 mt-6">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
                   >
                     <FiCheck className="inline mr-2" />
-                    Complete Dropoff
+                    {isSubmitting ? "Processing..." : "Complete Dropoff"}
                   </button>
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => {
                       setShowDropoffFlow(false);
                       setSelectedRoute(null);
                     }}
-                    className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition"
+                    className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 disabled:opacity-50 text-gray-800 rounded-lg font-medium transition"
                   >
                     Cancel
                   </button>
                 </div>
               </Form>
+              )}
             </Formik>
           </Dialog.Description>
         </Dialog.Panel>
