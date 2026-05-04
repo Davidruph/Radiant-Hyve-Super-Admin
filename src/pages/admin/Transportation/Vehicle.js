@@ -23,7 +23,12 @@ const vehicleValidationSchema = Yup.object().shape({
     .min(1, "Capacity must be at least 1"),
   color: Yup.string().optional(),
   year_of_manufacture: Yup.number().optional(),
-  insurance_expiry: Yup.string().optional()
+  insurance_expiry: Yup.string()
+    .optional()
+    .test("future-date", "Insurance expiry date must be in the future", (value) => {
+      if (!value) return true;
+      return new Date(value) > new Date();
+    })
 });
 
 const Vehicle = () => {
@@ -384,7 +389,13 @@ const Vehicle = () => {
                   <Field
                     name="insurance_expiry"
                     type="date"
+                    min={new Date().toISOString().split("T")[0]}
                     className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700"
+                  />
+                  <ErrorMessage
+                    name="insurance_expiry"
+                    component="span"
+                    className="text-red-500 text-sm mt-1"
                   />
                 </div>
 
